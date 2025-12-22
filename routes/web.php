@@ -18,7 +18,6 @@ Route::get('/', function () {
 // Customer catalog (public access)
 Route::prefix('catalog')->name('customer.')->group(function () {
     Route::get('/', [CustomerController::class, 'index'])->name('catalog');
-    Route::get('/{id}', [CustomerController::class, 'show'])->name('detail');
 
     // Cart routes (uses session, no auth required)
     Route::get('/cart/view', [CustomerController::class, 'cart'])->name('cart');
@@ -31,6 +30,8 @@ Route::prefix('catalog')->name('customer.')->group(function () {
     Route::post('/checkout/calculate-shipping', [CustomerController::class, 'calculateShipping'])->name('checkout.shipping');
     Route::post('/checkout/place-order', [CustomerController::class, 'placeOrder'])->name('checkout.place');
     Route::get('/order/success/{id}', [CustomerController::class, 'orderSuccess'])->name('order.success');
+
+    Route::get('/{id}', [CustomerController::class, 'show'])->name('detail');
 });
 
 // ==================== AUTHENTICATION ROUTES ====================
@@ -76,14 +77,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Laporan (Financial Reports)
     Route::prefix('laporan')->name('laporan.')->group(function () {
         Route::get('/', [AdminController::class, 'laporanIndex'])->name('index');
-    });
-
-    // Shift Management
-    Route::prefix('shift')->name('shift.')->group(function () {
-        Route::get('/', [AdminController::class, 'shiftIndex'])->name('index');
-        Route::post('/', [AdminController::class, 'shiftStore'])->name('store');
-        Route::put('/{id}', [AdminController::class, 'shiftUpdate'])->name('update');
-        Route::delete('/{id}', [AdminController::class, 'shiftDestroy'])->name('destroy');
     });
 });
 

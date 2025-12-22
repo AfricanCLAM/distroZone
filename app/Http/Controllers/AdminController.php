@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Kaos;
 use App\Models\Laporan;
-use App\Models\Shift;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -238,57 +237,10 @@ class AdminController extends Controller
         // Filter by payment method
         if ($request->filled('metode_pembayaran')) {
             $query->where('metode_pembayaran', $request->metode_pembayaran);
-}
-    $laporans = $query->paginate(20);
-    $totalPemasukan = $query->sum('pemasukan');
+        }
+        $laporans = $query->paginate(20);
+        $totalPemasukan = $query->sum('pemasukan');
 
-    return view('admin.laporan.index', compact('laporans', 'totalPemasukan'));
-}
-
-// ==================== SHIFT MANAGEMENT ====================
-
-public function shiftIndex()
-{
-    $shifts = Shift::all();
-    return view('admin.shift.index', compact('shifts'));
-}
-
-public function shiftStore(Request $request)
-{
-    $request->validate([
-        'tipe' => 'required|string|max:255',
-        'jam_buka' => 'required|date_format:H:i',
-        'jam_tutup' => 'required|date_format:H:i',
-    ]);
-
-    Shift::create($request->all());
-
-    return redirect()->route('admin.shift.index')
-        ->with('success', 'Shift berhasil ditambahkan!');
-}
-
-public function shiftUpdate(Request $request, $id)
-{
-    $shift = Shift::findOrFail($id);
-
-    $request->validate([
-        'tipe' => 'required|string|max:255',
-        'jam_buka' => 'required|date_format:H:i',
-        'jam_tutup' => 'required|date_format:H:i',
-    ]);
-
-    $shift->update($request->all());
-
-    return redirect()->route('admin.shift.index')
-        ->with('success', 'Shift berhasil diupdate!');
-}
-
-public function shiftDestroy($id)
-{
-    $shift = Shift::findOrFail($id);
-    $shift->delete();
-
-    return redirect()->route('admin.shift.index')
-        ->with('success', 'Shift berhasil dihapus!');
-}
+        return view('admin.laporan.index', compact('laporans', 'totalPemasukan'));
+    }
 }

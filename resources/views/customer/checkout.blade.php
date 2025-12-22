@@ -6,7 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Checkout - DistroZone</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+            <script src="{{ asset('js/tailwind.js') }}"></script>
+<script defer src="{{ asset('js/alpine.js') }}"></script>
+
 </head>
 
 <body class="bg-gray-50">
@@ -140,7 +142,8 @@
                                         </div>
                                     </div>
                                     <p class="font-semibold text-gray-900">Rp
-                                        {{ number_format($item['subtotal'], 0, ',', '.') }}</p>
+                                        {{ number_format($item['subtotal'], 0, ',', '.') }}
+                                    </p>
                                 </div>
                             @endforeach
                         </div>
