@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Kaos;
 use App\Models\Laporan;
+use App\Models\Transaksi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -17,14 +18,25 @@ class AdminController extends Controller
     {
         $totalKaos = Kaos::count();
         $totalKaryawan = User::whereIn('role', ['kasir online', 'kasir offline'])->count();
-        $totalPemasukan = Laporan::sum('pemasukan');
-        $transaksiHariIni = Laporan::whereDate('waktu_transaksi', today())->count();
+
+        // CHANGED: Use transaksi instead of laporan
+        $pemasukanHariIni = Transaksi::where('status', 'validated')
+            ->whereDate('validated_at', today())
+            ->sum('pemasukan');
+
+        $transaksiHariIni = Transaksi::where('status', 'validated')
+            ->whereDate('validated_at', today())
+            ->count();
+
+        // Additional useful stats
+        $transaksiPending = Transaksi::where('status', 'pending')->count();
 
         return view('admin.dashboard', compact(
             'totalKaos',
             'totalKaryawan',
-            'totalPemasukan',
-            'transaksiHariIni'
+            'pemasukanHariIni',
+            'transaksiHariIni',
+            'transaksiPending',
         ));
     }
 
@@ -221,14 +233,16 @@ class AdminController extends Controller
     }
 
     // ==================== LAPORAN / REPORTS ====================
-
     public function laporanIndex(Request $request)
     {
-        $query = Laporan::with('karyawan')->orderBy('waktu_transaksi', 'desc');
+        // Base query: only completed transactions
+        $query = Transaksi::with(['kasir', 'items.kaos'])
+            ->where('status', 'validated')
+            ->orderBy('validated_at', 'desc');
 
         // Filter by date range
         if ($request->filled('start_date') && $request->filled('end_date')) {
-            $query->whereBetween('waktu_transaksi', [
+            $query->whereBetween('validated_at', [
                 $request->start_date . ' 00:00:00',
                 $request->end_date . ' 23:59:59',
             ]);
@@ -238,9 +252,29 @@ class AdminController extends Controller
         if ($request->filled('metode_pembayaran')) {
             $query->where('metode_pembayaran', $request->metode_pembayaran);
         }
-        $laporans = $query->paginate(20);
-        $totalPemasukan = $query->sum('pemasukan');
 
-        return view('admin.laporan.index', compact('laporans', 'totalPemasukan'));
+        // Filter by kasir
+        if ($request->filled('id_kasir')) {
+            $query->where('id_kasir', $request->id_kasir);
+        }
+
+        // Get paginated results
+        $transaksis = $query->paginate(20)->withQueryString();
+
+        // Calculate totals
+        $totalPemasukan = $query->sum('pemasukan');
+        $totalTransaksi = $query->count();
+        $totalOngkir = $query->sum('ongkir');
+
+        // Get all kasir for filter dropdown
+        $kasirs = User::whereIn('role', ['kasir online', 'kasir offline'])->get();
+
+        return view('admin.laporan.index', compact(
+            'transaksis',
+            'totalPemasukan',
+            'totalTransaksi',
+            'totalOngkir',
+            'kasirs'
+        ));
     }
 }

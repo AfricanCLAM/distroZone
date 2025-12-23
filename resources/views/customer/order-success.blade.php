@@ -108,7 +108,7 @@
                     <div class="flex justify-between text-xl font-bold text-gray-900">
                         <span>Total Pembayaran</span>
                         <span class="text-indigo-600">Rp
-                            {{ number_format($transaksi->grand_total, 0, ',', '.') }}</span>
+                            {{ number_format($transaksi->pemasukan, 0, ',', '.') }}</span>
                     </div>
                 </div>
             </div>

@@ -45,7 +45,7 @@
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     @if($item->foto_kaos)
                                         <img src="{{ asset('storage/' . $item->foto_kaos) }}" alt="{{ $item->merek }}"
-                                            class="h-16 w-16 object-cover rounded-lg">
+                                            class="h-20 w-20 object-cover rounded-lg">
                                     @else
                                         <div class="h-16 w-16 bg-gray-200 rounded-lg flex items-center justify-center">
                                             <svg class="h-8 w-8 text-gray-400" fill="none" stroke="currentColor"

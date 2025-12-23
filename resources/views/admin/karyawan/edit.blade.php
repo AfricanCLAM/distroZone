@@ -7,7 +7,8 @@
 
     <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="bg-white rounded-lg shadow-md p-6">
-            <form action="{{ route('admin.karyawan.update', $karyawan->id) }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('admin.karyawan.update', $karyawan->id) }}" method="POST"
+                enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
 
@@ -44,7 +45,8 @@
                 <!-- No Telp -->
                 <div class="mb-4">
                     <label for="no_telp" class="block text-sm font-medium text-gray-700 mb-2">No. Telepon</label>
-                    <input type="text" name="no_telp" id="no_telp" value="{{ old('no_telp', $karyawan->no_telp) }}" required
+                    <input type="text" name="no_telp" id="no_telp" value="{{ old('no_telp', $karyawan->no_telp) }}"
+                        required
                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 @error('no_telp') border-red-500 @enderror">
                     @error('no_telp')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -71,7 +73,8 @@
 
                 <!-- Password (Optional) -->
                 <div class="mb-4">
-                    <label for="password" class="block text-sm font-medium text-gray-700 mb-2">Password (Kosongkan jika tidak ingin mengubah)</label>
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-2">Password (Kosongkan jika
+                        tidak ingin mengubah)</label>
                     <input type="password" name="password" id="password"
                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 @error('password') border-red-500 @enderror"
                         placeholder="Masukkan password baru (opsional)">
@@ -81,21 +84,39 @@
                     <p class="mt-1 text-xs text-gray-500">Biarkan kosong jika tidak ingin mengubah password</p>
                 </div>
 
-                <!-- Shift Start -->
+                <!-- Shift -->
                 <div class="mb-4">
-                    <label for="shift_start" class="block text-sm font-medium text-gray-700 mb-2">Shift Mulai (opsional)</label>
-                    <input type="time" name="shift_start" id="shift_start"
-                        value="{{ old('shift_start', $karyawan->shift_start ? $karyawan->shift_start->format('H:i') : '') }}"
+                    <label for="shift" class="block text-sm font-medium text-gray-700 mb-2">Shift</label>
+                    <select name="shift" id="shift" required
                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="">Pilih shift</option>
+                        <option value="offline_siang" {{ old('shift', $karyawan->shift) === 'offline_siang' ? 'selected' : '' }}>
+                            Kasir Offline Siang (10:00 - 15:00)
+                        </option>
+                        <option value="offline_sore" {{ old('shift', $karyawan->shift) === 'offline_sore' ? 'selected' : '' }}>
+                            Kasir Offline Sore (15:00 - 20:00)
+                        </option>
+                        <option value="online" {{ old('shift', $karyawan->shift) === 'online' ? 'selected' : '' }}>
+                            Kasir Online (10:00 - 17:00)
+                        </option>
+                    </select>
                 </div>
 
-                <!-- Shift End -->
                 <div class="mb-4">
-                    <label for="shift_end" class="block text-sm font-medium text-gray-700 mb-2">Shift Selesai (opsional)</label>
-                    <input type="time" name="shift_end" id="shift_end"
-                        value="{{ old('shift_end', $karyawan->shift_end ? $karyawan->shift_end->format('H:i') : '') }}"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Shift Mulai</label>
+                    <input type="time" name="shift_start" id="shift_start"
+                        value="{{ old('shift_start', optional($karyawan->shift_start)->format('H:i')) }}" readonly
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed">
                 </div>
+
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Shift Selesai</label>
+                    <input type="time" name="shift_end" id="shift_end"
+                        value="{{ old('shift_end', optional($karyawan->shift_end)->format('H:i')) }}" readonly
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed">
+                </div>
+
 
                 <!-- Foto -->
                 <div class="mb-6">
@@ -114,7 +135,8 @@
                             <input type="file" name="foto" id="foto" accept="image/*"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
                                 onchange="previewImage(event)">
-                            <p class="mt-1 text-xs text-gray-500">Biarkan kosong jika tidak ingin mengubah foto. Format: JPG, PNG. Max: 2MB</p>
+                            <p class="mt-1 text-xs text-gray-500">Biarkan kosong jika tidak ingin mengubah foto. Format:
+                                JPG, PNG. Max: 2MB</p>
                         </div>
                         <div id="preview-container" class="hidden">
                             <img id="preview" class="h-24 w-24 object-cover rounded-lg border-2 border-gray-300">
@@ -137,6 +159,24 @@
         </div>
     </div>
 
+    <script>
+        document.getElementById('shift').addEventListener('change', function () {
+            const start = document.getElementById('shift_start');
+            const end = document.getElementById('shift_end');
+
+            const shifts = {
+                offline_siang: { start: '10:00', end: '15:00' },
+                offline_sore: { start: '15:00', end: '20:00' },
+                online: { start: '10:00', end: '17:00' }
+            };
+
+            if (shifts[this.value]) {
+                start.value = shifts[this.value].start;
+                end.value = shifts[this.value].end;
+            }
+        });
+    </script>
+
     @push('scripts')
         <script>
             function previewImage(event) {
@@ -146,7 +186,7 @@
 
                 if (file) {
                     const reader = new FileReader();
-                    reader.onload = function(e) {
+                    reader.onload = function (e) {
                         preview.src = e.target.result;
                         previewContainer.classList.remove('hidden');
                     }

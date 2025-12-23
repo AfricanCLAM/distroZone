@@ -54,13 +54,6 @@ class User extends Authenticatable
         return $this->hasMany(Transaksi::class, 'id_kasir', 'id');
     }
 
-    /**
-     * A user (kasir/karyawan) can have many laporan entries
-     */
-    public function laporans()
-    {
-        return $this->hasMany(Laporan::class, 'id_karyawan', 'id');
-    }
 
     // --- HELPER METHODS ---
 

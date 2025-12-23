@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Kaos;
 use App\Models\Transaksi;
 use App\Models\ItemTransaksi;
+use App\Models\TransaksiItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
@@ -233,39 +234,58 @@ class CustomerController extends Controller
     {
         $request->validate([
             'nama_pembeli' => 'required|string|max:255',
-            'alamat_pembeli' => 'required|string',
-            'no_pembeli' => 'required|string|max:20',
+            'alamat' => 'required|string',
+            'no_telp_pembeli' => 'required|string|max:20',
         ]);
 
         $cart = Session::get('cart', []);
 
         if (empty($cart)) {
-            return redirect()->route('customer.catalog')->with('error', 'Keranjang kosong!');
+            return redirect()->route('customer.catalog')
+                ->with('error', 'Keranjang kosong!');
         }
 
         DB::beginTransaction();
 
         try {
-            // 1. Create transaction (status: pending)
+            // 1. Generate transaction number
+            $lastTransaksi = Transaksi::orderBy('id', 'desc')->first();
+            $noTransaksi = $lastTransaksi ? $lastTransaksi->no_transaksi + 1 : 1;
+
+            // 2. Determine wilayah from address
+            $alamat = strtolower($request->alamat);
+            $wilayah = $this->determineWilayah($alamat);
+
+            // 3. Create transaction (status: pending)
             $transaksi = Transaksi::create([
-                'id_kasir' => 1, // Default kasir, or use a specific online kasir ID
+                'no_transaksi' => $noTransaksi,
+                'id_kasir' => null, // Will be set when kasir validates
                 'nama_pembeli' => $request->nama_pembeli,
-                'alamat_pembeli' => $request->alamat_pembeli,
-                'no_pembeli' => $request->no_pembeli,
+                'alamat' => $request->alamat,
+                'no_telp_pembeli' => $request->no_telp_pembeli,
+                'wilayah' => $wilayah,
                 'status' => 'pending',
-                'waktu_transaksi' => now(),
+                'metode_pembayaran' => null, // Will be set during validation
+                'total_harga' => 0, // Will be calculated
+                'ongkir' => 0, // Will be calculated
+                'pemasukan' => 0, // Will be calculated
             ]);
 
-            // 2. Create item entries
+            // 4. Create transaction items
             foreach ($cart as $id => $item) {
-                ItemTransaksi::create([
-                    'id_transaksi' => $transaksi->id,
+                TransaksiItem::create([
+                    'transaksi_id' => $transaksi->id,
                     'id_kaos' => $id,
-                    'jumlah' => $item['quantity'],
+                    'qty' => $item['quantity'],
                 ]);
             }
 
-            // 3. Clear cart
+            // 5. Calculate and save totals
+            $transaksi->load('items.kaos'); // Eager load for calculation
+            $transaksi->calculateTotals();
+            $transaksi->save();
+
+            // 6. Clear cart
             Session::forget('cart');
 
             DB::commit();
@@ -275,8 +295,38 @@ class CustomerController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'Gagal membuat pesanan: ' . $e->getMessage());
+
+            return redirect()->back()
+                ->with('error', 'Gagal membuat pesanan: ' . $e->getMessage())
+                ->withInput();
         }
+    }
+
+    /**
+     * Helper: Determine region from address
+     */
+    private function determineWilayah($alamat)
+    {
+        $alamat = strtolower($alamat);
+
+        $regions = [
+            'jakarta' => 'Jakarta',
+            'depok' => 'Depok',
+            'bekasi' => 'Bekasi',
+            'tangerang' => 'Tangerang',
+            'bogor' => 'Bogor',
+            'jawa barat' => 'Jawa Barat',
+            'jawa tengah' => 'Jawa Tengah',
+            'jawa timur' => 'Jawa Timur',
+        ];
+
+        foreach ($regions as $key => $value) {
+            if (strpos($alamat, $key) !== false) {
+                return $value;
+            }
+        }
+
+        return 'Jawa Barat'; // Default
     }
 
     /**

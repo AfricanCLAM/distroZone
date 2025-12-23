@@ -6,9 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Checkout - DistroZone</title>
-            <script src="{{ asset('js/tailwind.js') }}"></script>
-<script defer src="{{ asset('js/alpine.js') }}"></script>
-
+    <script src="{{ asset('js/tailwind.js') }}"></script>
+    <script defer src="{{ asset('js/alpine.js') }}"></script>
 </head>
 
 <body class="bg-gray-50">
@@ -49,8 +48,7 @@
                         <div class="space-y-4">
                             <!-- Nama -->
                             <div>
-                                <label for="nama_pembeli" class="block text-sm font-medium text-gray-700 mb-2">Nama
-                                    Lengkap *</label>
+                                <label for="nama_pembeli" class="block text-sm font-medium text-gray-700 mb-2">Nama Lengkap <span class="text-red-600">*</span></label>
                                 <input type="text" name="nama_pembeli" id="nama_pembeli" required
                                     value="{{ old('nama_pembeli') }}"
                                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 @error('nama_pembeli') border-red-500 @enderror"
@@ -62,8 +60,7 @@
 
                             <!-- No Telepon -->
                             <div>
-                                <label for="no_pembeli" class="block text-sm font-medium text-gray-700 mb-2">No. Telepon
-                                    *</label>
+                                <label for="no_pembeli" class="block text-sm font-medium text-gray-700 mb-2">No. Telepon <span class="text-red-600">*</span></label>
                                 <input type="text" name="no_pembeli" id="no_pembeli" required
                                     value="{{ old('no_pembeli') }}"
                                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 @error('no_pembeli') border-red-500 @enderror"
@@ -73,23 +70,42 @@
                                 @enderror
                             </div>
 
+                            <!-- Wilayah (Region) -->
+                            <div>
+                                <label for="wilayah" class="block text-sm font-medium text-gray-700 mb-2">Wilayah Pengiriman <span class="text-red-600">*</span></label>
+                                <select name="wilayah" id="wilayah" required
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 @error('wilayah') border-red-500 @enderror">
+                                    <option value="">-- Pilih Wilayah --</option>
+                                    <option value="Jakarta" {{ old('wilayah') == 'Jakarta' ? 'selected' : '' }}>Jakarta (Rp 24.000/kg)</option>
+                                    <option value="Depok" {{ old('wilayah') == 'Depok' ? 'selected' : '' }}>Depok (Rp 24.000/kg)</option>
+                                    <option value="Bekasi" {{ old('wilayah') == 'Bekasi' ? 'selected' : '' }}>Bekasi (Rp 25.000/kg)</option>
+                                    <option value="Tangerang" {{ old('wilayah') == 'Tangerang' ? 'selected' : '' }}>Tangerang (Rp 25.000/kg)</option>
+                                    <option value="Bogor" {{ old('wilayah') == 'Bogor' ? 'selected' : '' }}>Bogor (Rp 27.000/kg)</option>
+                                    <option value="Jawa Barat" {{ old('wilayah') == 'Jawa Barat' ? 'selected' : '' }}>Jawa Barat (Rp 31.000/kg)</option>
+                                    <option value="Jawa Tengah" {{ old('wilayah') == 'Jawa Tengah' ? 'selected' : '' }}>Jawa Tengah (Rp 39.000/kg)</option>
+                                    <option value="Jawa Timur" {{ old('wilayah') == 'Jawa Timur' ? 'selected' : '' }}>Jawa Timur (Rp 47.000/kg)</option>
+                                </select>
+                                @error('wilayah')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
+                                <p class="mt-1 text-xs text-gray-500">⚠️ Pengiriman hanya tersedia untuk Pulau Jawa</p>
+                            </div>
+
                             <!-- Alamat -->
                             <div>
-                                <label for="alamat_pembeli" class="block text-sm font-medium text-gray-700 mb-2">Alamat
-                                    Lengkap *</label>
+                                <label for="alamat_pembeli" class="block text-sm font-medium text-gray-700 mb-2">Alamat Lengkap <span class="text-red-600">*</span></label>
                                 <textarea name="alamat_pembeli" id="alamat_pembeli" rows="4" required
                                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 @error('alamat_pembeli') border-red-500 @enderror"
-                                    placeholder="Masukkan alamat lengkap (Jalan, Kecamatan, Kota, Provinsi)">{{ old('alamat_pembeli') }}</textarea>
+                                    placeholder="Masukkan alamat lengkap (Jalan, RT/RW, Kelurahan, Kecamatan, Kota)">{{ old('alamat_pembeli') }}</textarea>
                                 @error('alamat_pembeli')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
-                                <p class="mt-1 text-xs text-gray-500">⚠️ Pastikan alamat berada di Pulau Jawa (Jakarta,
-                                    Jawa Barat, Jawa Tengah, atau Jawa Timur)</p>
+                                <p class="mt-1 text-xs text-gray-500">📍 Pastikan alamat sesuai dengan wilayah yang dipilih di atas</p>
                             </div>
 
                             <!-- Calculate Shipping Button -->
                             <button type="button" onclick="calculateShipping()"
-                                class="w-full bg-indigo-100 text-indigo-700 py-2 rounded-lg hover:bg-indigo-200 transition font-medium">
+                                class="w-full bg-indigo-100 text-indigo-700 py-3 rounded-lg hover:bg-indigo-200 transition font-medium">
                                 Hitung Ongkir
                             </button>
                         </div>
@@ -107,12 +123,10 @@
                                         clip-rule="evenodd" />
                                 </svg>
                                 <div>
-                                    <p class="text-sm font-medium text-blue-900">Wilayah: <span id="regionName">-</span>
-                                    </p>
+                                    <p class="text-sm font-medium text-blue-900">Wilayah: <span id="regionName">-</span></p>
                                     <p class="text-sm text-blue-800 mt-1">Berat: <span id="totalWeight">-</span> kg
                                         ({{ array_sum(array_column($cartItems, 'quantity')) }} item)</p>
-                                    <p class="text-lg font-bold text-blue-900 mt-2">Ongkir: <span
-                                            id="shippingCost">-</span></p>
+                                    <p class="text-lg font-bold text-blue-900 mt-2">Ongkir: <span id="shippingCost">-</span></p>
                                 </div>
                             </div>
                         </div>
@@ -204,67 +218,78 @@
         let calculatedOngkir = 0;
         const subtotal = {{ $subtotal }};
 
-        function calculateShipping() {
-            const alamat = document.getElementById('alamat_pembeli').value;
+        // Shipping rates per kg
+        const shippingRates = {
+            'Jakarta': 24000,
+            'Depok': 24000,
+            'Bekasi': 25000,
+            'Tangerang': 25000,
+            'Bogor': 27000,
+            'Jawa Barat': 31000,
+            'Jawa Tengah': 39000,
+            'Jawa Timur': 47000
+        };
 
-            if (!alamat) {
-                alert('Mohon isi alamat terlebih dahulu!');
+        function calculateShipping() {
+            const nama = document.getElementById('nama_pembeli').value.trim();
+            const noTelp = document.getElementById('no_pembeli').value.trim();
+            const wilayah = document.getElementById('wilayah').value;
+            const alamat = document.getElementById('alamat_pembeli').value.trim();
+
+            // Validation
+            if (!nama) {
+                alert('Nama pembeli harus diisi!');
+                document.getElementById('nama_pembeli').focus();
                 return;
             }
 
-            // Show loading
-            const btn = event.target;
-            btn.disabled = true;
-            btn.textContent = 'Menghitung...';
+            if (!noTelp) {
+                alert('No. telepon harus diisi!');
+                document.getElementById('no_pembeli').focus();
+                return;
+            }
 
-            fetch('{{ route("customer.checkout.shipping") }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                },
-                body: JSON.stringify({ alamat: alamat })
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        calculatedOngkir = data.ongkir;
+            if (!wilayah) {
+                alert('Wilayah pengiriman harus dipilih!');
+                document.getElementById('wilayah').focus();
+                return;
+            }
 
-                        // Update UI
-                        document.getElementById('regionName').textContent = data.region;
-                        document.getElementById('totalWeight').textContent = data.weight;
-                        document.getElementById('shippingCost').textContent = data.formatted_ongkir;
-                        document.getElementById('ongkirValue').value = data.ongkir;
-                        document.getElementById('ongkirDisplay').textContent = data.formatted_ongkir;
+            if (!alamat) {
+                alert('Alamat lengkap harus diisi!');
+                document.getElementById('alamat_pembeli').focus();
+                return;
+            }
 
-                        // Calculate grand total
-                        const grandTotal = subtotal + calculatedOngkir;
-                        document.getElementById('grandTotal').textContent = 'Rp ' + grandTotal.toLocaleString('id-ID');
+            // Calculate shipping
+            const totalItems = {{ array_sum(array_column($cartItems, 'quantity')) }};
+            const totalWeight = Math.ceil(totalItems / 3); // 3 items = 1 kg
+            const ratePerKg = shippingRates[wilayah];
+            calculatedOngkir = ratePerKg * totalWeight;
 
-                        // Show shipping info
-                        document.getElementById('shippingInfo').classList.remove('hidden');
+            // Update UI
+            document.getElementById('regionName').textContent = wilayah;
+            document.getElementById('totalWeight').textContent = totalWeight;
+            document.getElementById('shippingCost').textContent = 'Rp ' + calculatedOngkir.toLocaleString('id-ID');
+            document.getElementById('ongkirValue').value = calculatedOngkir;
+            document.getElementById('ongkirDisplay').textContent = 'Rp ' + calculatedOngkir.toLocaleString('id-ID');
 
-                        // Enable submit button
-                        const submitBtn = document.getElementById('submitBtn');
-                        submitBtn.disabled = false;
-                        submitBtn.classList.remove('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
-                        submitBtn.classList.add('bg-indigo-600', 'text-white', 'hover:bg-indigo-700', 'cursor-pointer');
-                        submitBtn.textContent = 'Buat Pesanan';
+            // Calculate grand total
+            const grandTotal = subtotal + calculatedOngkir;
+            document.getElementById('grandTotal').textContent = 'Rp ' + grandTotal.toLocaleString('id-ID');
 
-                        // Reset button
-                        btn.disabled = false;
-                        btn.textContent = 'Hitung Ulang Ongkir';
+            // Show shipping info
+            document.getElementById('shippingInfo').classList.remove('hidden');
 
-                        // Scroll to shipping info
-                        document.getElementById('shippingInfo').scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Gagal menghitung ongkir. Silakan coba lagi.');
-                    btn.disabled = false;
-                    btn.textContent = 'Hitung Ongkir';
-                });
+            // Enable submit button
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
+            submitBtn.classList.add('bg-indigo-600', 'text-white', 'hover:bg-indigo-700', 'cursor-pointer');
+            submitBtn.textContent = 'Buat Pesanan';
+
+            // Scroll to shipping info
+            document.getElementById('shippingInfo').scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
         // Validate form before submit
@@ -272,6 +297,17 @@
             if (calculatedOngkir === 0) {
                 e.preventDefault();
                 alert('Mohon hitung ongkir terlebih dahulu!');
+                return false;
+            }
+
+            const nama = document.getElementById('nama_pembeli').value.trim();
+            const noTelp = document.getElementById('no_pembeli').value.trim();
+            const wilayah = document.getElementById('wilayah').value;
+            const alamat = document.getElementById('alamat_pembeli').value.trim();
+
+            if (!nama || !noTelp || !wilayah || !alamat) {
+                e.preventDefault();
+                alert('Semua field harus diisi dengan lengkap!');
                 return false;
             }
         });

@@ -1,17 +1,11 @@
 > Feature and Improvement
-- fix auth [done]
-- add Edit Kaos [done]
-- fix name dropdown not working on Dashboard (must show logout,name and photo) [done]
 - adding checkout page
-- add detail Wilayah
 - fix checkout
-- change shift time to auto --> Offline Siang (10:00 - 15:00),Offline Sore (15:00 - 20:00),Online (10:00 - 17:00)
-- remove shift module,it's already handled in users CRUD [done]
-- add Custom 404 Page [done]
-- adding cashier Transaction module
 - add edit profile
+- add "show password" on login page
+- adjust ItemTransaksi Model to match database
+- fix TransaksiController
 
 
 > Responsive
-- fix sidebar not showing on mobilen [done]
 - fix mobile responsive on catalog

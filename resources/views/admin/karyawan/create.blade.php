@@ -75,21 +75,41 @@
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
-                <!-- Shift Start -->
+
+                <!-- Shift -->
                 <div class="mb-4">
-                    <label for="shift_start" class="block text-sm font-medium text-gray-700 mb-2">Shift Mulai
-                        (opsional)</label>
-                    <input type="time" name="shift_start" id="shift_start" value="{{ old('shift_start') }}"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                    <label for="shift" class="block text-sm font-medium text-gray-700 mb-2">Shift</label>
+                    <select name="shift" id="shift" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 @error('shift') border-red-500 @enderror">
+                        <option value="">Pilih shift</option>
+                        <option value="offline_siang" {{ old('shift') === 'offline_siang' ? 'selected' : '' }}>
+                            Kasir Offline Siang (10:00 - 15:00)
+                        </option>
+                        <option value="offline_sore" {{ old('shift') === 'offline_sore' ? 'selected' : '' }}>
+                            Kasir Offline Sore (15:00 - 20:00)
+                        </option>
+                        <option value="online" {{ old('shift') === 'online' ? 'selected' : '' }}>
+                            Kasir Online (10:00 - 17:00)
+                        </option>
+                    </select>
+                    @error('shift')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
 
-                <!-- Shift End -->
+
                 <div class="mb-4">
-                    <label for="shift_end" class="block text-sm font-medium text-gray-700 mb-2">Shift Selesai
-                        (opsional)</label>
-                    <input type="time" name="shift_end" id="shift_end" value="{{ old('shift_end') }}"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Shift Mulai</label>
+                    <input type="time" name="shift_start" id="shift_start" value="{{ old('shift_start') }}" readonly
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed">
                 </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Shift Selesai</label>
+                    <input type="time" name="shift_end" id="shift_end" value="{{ old('shift_end') }}" readonly
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed">
+                </div>
+
 
                 <!-- Foto -->
                 <div class="mb-6">
@@ -113,4 +133,25 @@
             </form>
         </div>
     </div>
+
+    <script>
+        document.getElementById('shift').addEventListener('change', function () {
+            const start = document.getElementById('shift_start');
+            const end = document.getElementById('shift_end');
+
+            const shifts = {
+                offline_siang: { start: '10:00', end: '15:00' },
+                offline_sore: { start: '15:00', end: '20:00' },
+                online: { start: '10:00', end: '17:00' }
+            };
+
+            if (shifts[this.value]) {
+                start.value = shifts[this.value].start;
+                end.value = shifts[this.value].end;
+            } else {
+                start.value = '';
+                end.value = '';
+            }
+        });
+    </script>
 </x-app-layout>

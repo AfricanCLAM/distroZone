@@ -3,9 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Transaksi;
-use App\Models\ItemTransaksi;
+use App\Models\TransaksiItem;
 use App\Models\Kaos;
-use App\Models\Laporan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -18,10 +17,9 @@ class TransaksiController extends Controller
      */
     public function index()
     {
-        // Get all pending transactions with items
         $transaksis = Transaksi::with(['items.kaos', 'kasir'])
             ->where('status', 'pending')
-            ->orderBy('waktu_transaksi', 'desc')
+            ->orderBy('created_at', 'desc')
             ->get();
 
         return view('kasir.transaksi.index', compact('transaksis'));
@@ -40,10 +38,10 @@ class TransaksiController extends Controller
 
     /**
      * Confirm/Verify a transaction (ACC)
+     * This is the ONLY place where transactions are finalized
      */
     public function confirm(Request $request, $id)
     {
-        // Validate payment method
         $request->validate([
             'metode_pembayaran' => 'required|in:Bank Transfer',
         ]);
@@ -51,72 +49,97 @@ class TransaksiController extends Controller
         DB::beginTransaction();
 
         try {
-            // Find transaction
+            // 1. Find transaction with items
             $transaksi = Transaksi::with('items.kaos')->findOrFail($id);
 
-            // Check if already completed
-            if ($transaksi->isCompleted()) {
-                return redirect()->back()->with('error', 'Transaksi sudah dikonfirmasi sebelumnya.');
+            // 2. Validate status
+            if (!$transaksi->isPending()) {
+                throw new \Exception('Transaksi sudah diproses sebelumnya.');
             }
 
-            // 1. Check stock availability for all items
+            // 3. Check stock availability for ALL items
             foreach ($transaksi->items as $item) {
-                if (!$item->kaos->hasStock($item->jumlah)) {
-                    throw new \Exception("Stok tidak cukup untuk {$item->kaos->merek} ukuran {$item->kaos->ukuran}");
+                if (!$item->kaos->hasStock($item->qty)) {
+                    throw new \Exception("Stok tidak cukup untuk {$item->kaos->merek} ukuran {$item->kaos->ukuran}. Tersedia: {$item->kaos->stok_kaos}, diminta: {$item->qty}");
                 }
             }
 
-            // 2. Decrement stock for each item
-            foreach ($transaksi->items as $item) {
-                $item->kaos->decrementStock($item->jumlah);
+            // 4. Update transaction details
+            $transaksi->status = 'completed';
+            $transaksi->metode_pembayaran = $request->metode_pembayaran;
+            $transaksi->id_kasir = Auth::id();
+            $transaksi->validated_at = now();
+
+            // 5. Calculate totals (if not already calculated)
+            if ($transaksi->pemasukan == 0) {
+                $transaksi->calculateTotals();
             }
 
-            // 3. Update transaction status
-            $transaksi->status = 'completed';
-            $transaksi->save();
-
-            // 4. Generate PDF receipt
+            // 6. Generate and save receipt PDF
             $strukFilename = 'struk_' . $transaksi->id . '_' . time() . '.pdf';
             $pdf = $this->generateStrukPDF($transaksi);
-            $pdf->save(storage_path('app/public/struk/' . $strukFilename));
 
-            // 5. Create laporan entry (audit trail)
-            Laporan::create([
-                'id_karyawan' => Auth::id(),
-                'pemasukan' => $transaksi->grand_total,
-                'waktu_transaksi' => now(),
-                'struk' => $strukFilename,
-                'metode_pembayaran' => $request->metode_pembayaran,
-            ]);
+            // Ensure directory exists
+            $strukPath = storage_path('app/public/struk');
+            if (!file_exists($strukPath)) {
+                mkdir($strukPath, 0755, true);
+            }
+
+            $pdf->save($strukPath . '/' . $strukFilename);
+            $transaksi->struk = $strukFilename;
+
+            // 7. Save transaction (this updates validated_at timestamp)
+            $transaksi->save();
+
+            // 8. Decrement stock for each item (AFTER validation)
+            foreach ($transaksi->items as $item) {
+                $item->kaos->decrementStock($item->qty);
+            }
 
             DB::commit();
 
             return redirect()->route('kasir.transaksi.index')
-                ->with('success', 'Transaksi berhasil dikonfirmasi!')
+                ->with('success', 'Transaksi #' . $transaksi->id . ' berhasil dikonfirmasi!')
                 ->with('struk_url', asset('storage/struk/' . $strukFilename));
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'Gagal konfirmasi transaksi: ' . $e->getMessage());
+
+            return redirect()->back()
+                ->with('error', 'Gagal konfirmasi transaksi: ' . $e->getMessage());
         }
     }
 
     /**
-     * Cancel a transaction
+     * Reject/Cancel a transaction
      */
     public function cancel($id)
     {
-        $transaksi = Transaksi::findOrFail($id);
+        DB::beginTransaction();
 
-        if ($transaksi->isCompleted()) {
-            return redirect()->back()->with('error', 'Transaksi yang sudah selesai tidak bisa dibatalkan.');
+        try {
+            $transaksi = Transaksi::findOrFail($id);
+
+            if (!$transaksi->isPending()) {
+                throw new \Exception('Hanya transaksi pending yang bisa dibatalkan.');
+            }
+
+            $transaksi->status = 'rejected';
+            $transaksi->validated_at = now();
+            $transaksi->id_kasir = Auth::id();
+            $transaksi->save();
+
+            DB::commit();
+
+            return redirect()->route('kasir.transaksi.index')
+                ->with('success', 'Transaksi #' . $transaksi->id . ' berhasil dibatalkan.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return redirect()->back()
+                ->with('error', 'Gagal membatalkan transaksi: ' . $e->getMessage());
         }
-
-        $transaksi->status = 'cancelled';
-        $transaksi->save();
-
-        return redirect()->route('kasir.transaksi.index')
-            ->with('success', 'Transaksi berhasil dibatalkan.');
     }
 
     /**
@@ -130,7 +153,7 @@ class TransaksiController extends Controller
         ];
 
         $pdf = Pdf::loadView('pdf.struk', $data);
-        $pdf->setPaper([0, 0, 226.77, 566.93], 'portrait'); // 80mm width thermal paper
+        $pdf->setPaper([0, 0, 226.77, 566.93], 'portrait'); // 80mm thermal paper
 
         return $pdf;
     }
@@ -143,12 +166,20 @@ class TransaksiController extends Controller
         $transaksi = Transaksi::with('items.kaos')->findOrFail($id);
 
         if (!$transaksi->isCompleted()) {
-            return redirect()->back()->with('error', 'Struk hanya tersedia untuk transaksi yang sudah selesai.');
+            return redirect()->back()
+                ->with('error', 'Struk hanya tersedia untuk transaksi yang sudah selesai.');
         }
 
-        $pdf = $this->generateStrukPDF($transaksi);
+        if (!$transaksi->struk || !file_exists(storage_path('app/public/struk/' . $transaksi->struk))) {
+            // Regenerate if missing
+            $pdf = $this->generateStrukPDF($transaksi);
+            return $pdf->download('struk_' . $transaksi->id . '.pdf');
+        }
 
-        return $pdf->download('struk_' . $transaksi->id . '.pdf');
+        return response()->download(
+            storage_path('app/public/struk/' . $transaksi->struk),
+            'struk_' . $transaksi->id . '.pdf'
+        );
     }
 
     /**
@@ -158,8 +189,8 @@ class TransaksiController extends Controller
     {
         $transaksis = Transaksi::with(['items.kaos'])
             ->where('id_kasir', Auth::id())
-            ->where('status', 'completed')
-            ->orderBy('waktu_transaksi', 'desc')
+            ->whereIn('status', ['completed', 'rejected'])
+            ->orderBy('validated_at', 'desc')
             ->paginate(20);
 
         return view('kasir.transaksi.history', compact('transaksis'));

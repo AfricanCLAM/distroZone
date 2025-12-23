@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Transaksi;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class KasirController extends Controller
@@ -23,13 +22,13 @@ class KasirController extends Controller
 
         // Count today's transactions by this kasir
         $todayCount = Transaksi::where('id_kasir', $user->id)
-            ->where('status', 'completed')
-            ->whereDate('waktu_transaksi', today())
+            ->where('status', 'validated')
+            ->whereDate('validated_at', today())
             ->count();
 
         // Total completed transactions by this kasir
         $totalCompleted = Transaksi::where('id_kasir', $user->id)
-            ->where('status', 'completed')
+            ->where('status', 'validated')
             ->count();
 
         return view('kasir.dashboard', compact('pendingCount', 'todayCount', 'totalCompleted'));

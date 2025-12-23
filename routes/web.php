@@ -85,9 +85,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 Route::middleware(['auth', 'role:kasir online'])->prefix('kasir')->name('kasir.')->group(function () {
 
     // Dashboard
-    Route::get('/dashboard', function () {
-        return redirect()->route('kasir.transaksi.index');
-    })->name('dashboard');
+    Route::get('/dashboard', [KasirController::class, 'dashboard'])->name('dashboard');
 
     // Transaction Management
     Route::prefix('transaksi')->name('transaksi.')->group(function () {

@@ -33,7 +33,7 @@
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">
                                     @if($karyawan->foto)
-                                        <img src="{{ asset('storage/' . $karyawan->foto) }}" alt="{{ $karyawan->nama }}" class="h-10 w-10 rounded-full object-cover mr-3">
+                                        <img src="{{ asset('storage/' . $karyawan->foto) }}" alt="{{ $karyawan->nama }}" class="h-20 w-20 rounded-full object-cover mr-3">
                                     @else
                                         <div class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center mr-3">
                                             <span class="text-gray-600 font-semibold">{{ substr($karyawan->nama, 0, 1) }}</span>

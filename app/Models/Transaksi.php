@@ -9,98 +9,89 @@ class Transaksi extends Model
 {
     use HasFactory;
 
-    // Table name
     protected $table = 'transaksi';
-
-    // Primary key
     protected $primaryKey = 'id';
 
-    // No timestamps
-    public $timestamps = false;
+    // Enable timestamps for created_at and validated_at
+    public $timestamps = true;
+    const CREATED_AT = 'created_at';
+    const UPDATED_AT = 'validated_at'; // Use validated_at as updated_at
 
-    // Mass-assignable fields
     protected $fillable = [
+        'no_transaksi',
         'id_kasir',
         'nama_pembeli',
-        'alamat_pembeli',
-        'no_pembeli',
+        'alamat',
+        'no_telp_pembeli',
+        'wilayah',
         'status',
-        'waktu_transaksi',
+        'metode_pembayaran',
+        'total_harga',
+        'ongkir',
+        'pemasukan',
+        'struk',
     ];
 
-    // Cast attributes
     protected $casts = [
-        'id_kasir' => 'integer',
-        'waktu_transaksi' => 'datetime',
+        'created_at' => 'datetime',
+        'validated_at' => 'datetime',
+        'total_harga' => 'float',
+        'ongkir' => 'float',
+        'pemasukan' => 'float',
     ];
 
-    // --- RELATIONSHIPS ---
-
-    /**
-     * Transaction belongs to a kasir (user)
-     */
+    // Relationships
     public function kasir()
     {
         return $this->belongsTo(User::class, 'id_kasir', 'id');
     }
 
-    /**
-     * Transaction has many items
-     */
     public function items()
     {
-        return $this->hasMany(ItemTransaksi::class, 'id_transaksi', 'id');
+        return $this->hasMany(TransaksiItem::class, 'transaksi_id', 'id');
     }
 
-    // --- HELPER METHODS ---
-
-    /**
-     * Check if transaction is pending
-     */
+    // Status helpers
     public function isPending()
     {
         return $this->status === 'pending';
     }
 
-    /**
-     * Check if transaction is completed
-     */
+    public function isValidated()
+    {
+        return $this->status === 'validated';
+    }
+
     public function isCompleted()
     {
         return $this->status === 'completed';
     }
 
-    /**
-     * Check if transaction is cancelled
-     */
-    public function isCancelled()
+    public function isRejected()
     {
-        return $this->status === 'cancelled';
+        return $this->status === 'rejected';
     }
 
-    /**
-     * Calculate total price of all items
-     */
-    public function getTotalHargaAttribute()
+    // Calculate totals (these should be called before saving)
+    public function calculateTotals()
     {
-        return $this->items->sum(function ($item) {
-            return $item->kaos->harga_jual * $item->jumlah;
+        // Calculate subtotal from items
+        $this->total_harga = $this->items->sum(function ($item) {
+            return $item->qty * $item->kaos->harga_jual;
         });
+
+        // Calculate shipping
+        $this->ongkir = $this->calculateShipping();
+
+        // Grand total
+        $this->pemasukan = $this->total_harga + $this->ongkir;
     }
 
-    /**
-     * Calculate shipping cost based on region
-     */
-    public function getOngkirAttribute()
+    private function calculateShipping()
     {
-        // Extract region from address
-        $alamat = strtolower($this->alamat_pembeli);
+        $totalItems = $this->items->sum('qty');
+        $totalWeight = ceil($totalItems / 3); // 3 items = 1 kg
 
-        // Total items for weight calculation
-        $totalItems = $this->items->sum('jumlah');
-        $totalWeight = ceil($totalItems / 3); // 3 items = 1 kg, round up
-
-        // Shipping rates per kg
         $rates = [
             'jakarta' => 24000,
             'depok' => 24000,
@@ -112,7 +103,8 @@ class Transaksi extends Model
             'jawa timur' => 47000,
         ];
 
-        // Find matching region
+        $alamat = strtolower($this->alamat);
+
         foreach ($rates as $region => $rate) {
             if (strpos($alamat, $region) !== false) {
                 return $rate * $totalWeight;
@@ -123,28 +115,19 @@ class Transaksi extends Model
         return $rates['jawa barat'] * $totalWeight;
     }
 
-    /**
-     * Calculate grand total (items + shipping)
-     */
-    public function getGrandTotalAttribute()
+    // Formatted attributes
+    public function getFormattedTotalHargaAttribute()
     {
-        return $this->total_harga + $this->ongkir;
+        return 'Rp ' . number_format($this->total_harga, 0, ',', '.');
     }
 
-    /**
-     * Get formatted grand total
-     */
+    public function getFormattedOngkirAttribute()
+    {
+        return 'Rp ' . number_format($this->ongkir, 0, ',', '.');
+    }
+
     public function getFormattedGrandTotalAttribute()
     {
-        return 'Rp ' . number_format($this->grand_total, 0, ',', '.');
-    }
-
-    /**
-     * Get total weight in kg
-     */
-    public function getTotalBeratAttribute()
-    {
-        $totalItems = $this->items->sum('jumlah');
-        return ceil($totalItems / 3);
+        return 'Rp ' . number_format($this->pemasukan, 0, ',', '.');
     }
 }
