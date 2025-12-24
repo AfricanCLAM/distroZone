@@ -17,7 +17,8 @@ class TransaksiController extends Controller
      */
     public function index()
     {
-        $transaksis = Transaksi::with(['items.kaos', 'kasir'])
+        // Get all pending transactions with items
+        $transaksis = Transaksi::with(['transaksiItems.kaos', 'kasir'])
             ->where('status', 'pending')
             ->orderBy('created_at', 'desc')
             ->get();
@@ -30,7 +31,7 @@ class TransaksiController extends Controller
      */
     public function show($id)
     {
-        $transaksi = Transaksi::with(['items.kaos', 'kasir'])
+        $transaksi = Transaksi::with(['transaksiItems.kaos', 'kasir'])
             ->findOrFail($id);
 
         return view('kasir.transaksi.show', compact('transaksi'));
@@ -38,45 +39,40 @@ class TransaksiController extends Controller
 
     /**
      * Confirm/Verify a transaction (ACC)
-     * This is the ONLY place where transactions are finalized
      */
     public function confirm(Request $request, $id)
     {
-        $request->validate([
-            'metode_pembayaran' => 'required|in:Bank Transfer',
-        ]);
-
         DB::beginTransaction();
 
         try {
-            // 1. Find transaction with items
-            $transaksi = Transaksi::with('items.kaos')->findOrFail($id);
+            // Find transaction
+            $transaksi = Transaksi::with('transaksiItems.kaos')->findOrFail($id);
 
-            // 2. Validate status
-            if (!$transaksi->isPending()) {
-                throw new \Exception('Transaksi sudah diproses sebelumnya.');
+            // Check if already completed/validated
+            if ($transaksi->isCompleted() || $transaksi->isValidated()) {
+                return redirect()->back()->with('error', 'Transaksi sudah dikonfirmasi sebelumnya.');
             }
 
-            // 3. Check stock availability for ALL items
-            foreach ($transaksi->items as $item) {
+            // 1. Check stock availability for all items
+            foreach ($transaksi->transaksiItems as $item) {
                 if (!$item->kaos->hasStock($item->qty)) {
-                    throw new \Exception("Stok tidak cukup untuk {$item->kaos->merek} ukuran {$item->kaos->ukuran}. Tersedia: {$item->kaos->stok_kaos}, diminta: {$item->qty}");
+                    throw new \Exception("Stok tidak cukup untuk {$item->kaos->merek} ukuran {$item->kaos->ukuran}");
                 }
             }
 
-            // 4. Update transaction details
-            $transaksi->status = 'completed';
-            $transaksi->metode_pembayaran = $request->metode_pembayaran;
-            $transaksi->id_kasir = Auth::id();
-            $transaksi->validated_at = now();
-
-            // 5. Calculate totals (if not already calculated)
-            if ($transaksi->pemasukan == 0) {
-                $transaksi->calculateTotals();
+            // 2. Decrement stock for each item
+            foreach ($transaksi->transaksiItems as $item) {
+                $item->kaos->decrementStock($item->qty);
             }
 
-            // 6. Generate and save receipt PDF
-            $strukFilename = 'struk_' . $transaksi->id . '_' . time() . '.pdf';
+            // 3. Update transaction status
+            $transaksi->status = 'validated';
+            $transaksi->id_kasir = Auth::user()->id;
+            $transaksi->validated_at = now();
+            $transaksi->save();
+
+            // 4. Generate PDF receipt
+            $strukFilename = 'struk_' . $transaksi->no_transaksi . '_' . time() . '.pdf';
             $pdf = $this->generateStrukPDF($transaksi);
 
             // Ensure directory exists
@@ -86,60 +82,39 @@ class TransaksiController extends Controller
             }
 
             $pdf->save($strukPath . '/' . $strukFilename);
+
+            // 5. Update struk field in transaction
             $transaksi->struk = $strukFilename;
-
-            // 7. Save transaction (this updates validated_at timestamp)
             $transaksi->save();
-
-            // 8. Decrement stock for each item (AFTER validation)
-            foreach ($transaksi->items as $item) {
-                $item->kaos->decrementStock($item->qty);
-            }
 
             DB::commit();
 
             return redirect()->route('kasir.transaksi.index')
-                ->with('success', 'Transaksi #' . $transaksi->id . ' berhasil dikonfirmasi!')
+                ->with('success', 'Transaksi berhasil dikonfirmasi!')
                 ->with('struk_url', asset('storage/struk/' . $strukFilename));
 
         } catch (\Exception $e) {
             DB::rollBack();
-
-            return redirect()->back()
-                ->with('error', 'Gagal konfirmasi transaksi: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal konfirmasi transaksi: ' . $e->getMessage());
         }
     }
 
     /**
-     * Reject/Cancel a transaction
+     * Cancel a transaction
      */
     public function cancel($id)
     {
-        DB::beginTransaction();
+        $transaksi = Transaksi::findOrFail($id);
 
-        try {
-            $transaksi = Transaksi::findOrFail($id);
-
-            if (!$transaksi->isPending()) {
-                throw new \Exception('Hanya transaksi pending yang bisa dibatalkan.');
-            }
-
-            $transaksi->status = 'rejected';
-            $transaksi->validated_at = now();
-            $transaksi->id_kasir = Auth::id();
-            $transaksi->save();
-
-            DB::commit();
-
-            return redirect()->route('kasir.transaksi.index')
-                ->with('success', 'Transaksi #' . $transaksi->id . ' berhasil dibatalkan.');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            return redirect()->back()
-                ->with('error', 'Gagal membatalkan transaksi: ' . $e->getMessage());
+        if ($transaksi->isCompleted() || $transaksi->isValidated()) {
+            return redirect()->back()->with('error', 'Transaksi yang sudah selesai tidak bisa dibatalkan.');
         }
+
+        $transaksi->status = 'rejected';
+        $transaksi->save();
+
+        return redirect()->route('kasir.transaksi.index')
+            ->with('success', 'Transaksi berhasil dibatalkan.');
     }
 
     /**
@@ -149,11 +124,11 @@ class TransaksiController extends Controller
     {
         $data = [
             'transaksi' => $transaksi,
-            'items' => $transaksi->items,
+            'items' => $transaksi->transaksiItems,
         ];
 
         $pdf = Pdf::loadView('pdf.struk', $data);
-        $pdf->setPaper([0, 0, 226.77, 566.93], 'portrait'); // 80mm thermal paper
+        $pdf->setPaper([0, 0, 226.77, 566.93], 'portrait'); // 80mm width thermal paper
 
         return $pdf;
     }
@@ -163,23 +138,15 @@ class TransaksiController extends Controller
      */
     public function downloadStruk($id)
     {
-        $transaksi = Transaksi::with('items.kaos')->findOrFail($id);
+        $transaksi = Transaksi::with('transaksiItems.kaos')->findOrFail($id);
 
-        if (!$transaksi->isCompleted()) {
-            return redirect()->back()
-                ->with('error', 'Struk hanya tersedia untuk transaksi yang sudah selesai.');
+        if (!$transaksi->isCompleted() && !$transaksi->isValidated()) {
+            return redirect()->back()->with('error', 'Struk hanya tersedia untuk transaksi yang sudah selesai.');
         }
 
-        if (!$transaksi->struk || !file_exists(storage_path('app/public/struk/' . $transaksi->struk))) {
-            // Regenerate if missing
-            $pdf = $this->generateStrukPDF($transaksi);
-            return $pdf->download('struk_' . $transaksi->id . '.pdf');
-        }
+        $pdf = $this->generateStrukPDF($transaksi);
 
-        return response()->download(
-            storage_path('app/public/struk/' . $transaksi->struk),
-            'struk_' . $transaksi->id . '.pdf'
-        );
+        return $pdf->download('struk_' . $transaksi->no_transaksi . '.pdf');
     }
 
     /**
@@ -187,10 +154,10 @@ class TransaksiController extends Controller
      */
     public function myTransactions()
     {
-        $transaksis = Transaksi::with(['items.kaos'])
-            ->where('id_kasir', Auth::id())
-            ->whereIn('status', ['completed', 'rejected'])
-            ->orderBy('validated_at', 'desc')
+        $transaksis = Transaksi::with(['transaksiItems.kaos'])
+            ->where('id_kasir', Auth::user()->id)
+            ->whereIn('status', ['validated'])
+            ->orderBy('created_at', 'desc')
             ->paginate(20);
 
         return view('kasir.transaksi.history', compact('transaksis'));

@@ -179,50 +179,34 @@ class CustomerController extends Controller
     public function calculateShipping(Request $request)
     {
         $request->validate([
-            'alamat' => 'required|string',
+            'wilayah' => 'required|in:Jakarta,Depok,Bekasi,Tangerang,Bogor,Jawa Barat,Jawa Tengah,Jawa Timur',
         ]);
 
-        $alamat = strtolower($request->alamat);
         $cart = Session::get('cart', []);
 
         // Calculate total items
         $totalItems = array_sum(array_column($cart, 'quantity'));
         $totalWeight = ceil($totalItems / 3);
 
-        // Shipping rates
+        // Shipping rates per kg
         $rates = [
-            'jakarta' => 24000,
-            'depok' => 24000,
-            'bekasi' => 25000,
-            'tangerang' => 25000,
-            'bogor' => 27000,
-            'jawa barat' => 31000,
-            'jawa tengah' => 39000,
-            'jawa timur' => 47000,
+            'Jakarta' => 24000,
+            'Depok' => 24000,
+            'Bekasi' => 25000,
+            'Tangerang' => 25000,
+            'Bogor' => 27000,
+            'Jawa Barat' => 31000,
+            'Jawa Tengah' => 39000,
+            'Jawa Timur' => 47000,
         ];
 
-        $ongkir = 0;
-        $region = 'Unknown';
-
-        foreach ($rates as $key => $rate) {
-            if (strpos($alamat, $key) !== false) {
-                $ongkir = $rate * $totalWeight;
-                $region = ucwords($key);
-                break;
-            }
-        }
-
-        // Default to Jawa Barat if no match
-        if ($ongkir == 0) {
-            $ongkir = $rates['jawa barat'] * $totalWeight;
-            $region = 'Jawa Barat (Default)';
-        }
+        $ongkir = $rates[$request->wilayah] * $totalWeight;
 
         return response()->json([
             'success' => true,
             'ongkir' => $ongkir,
             'formatted_ongkir' => 'Rp ' . number_format($ongkir, 0, ',', '.'),
-            'region' => $region,
+            'region' => $request->wilayah,
             'weight' => $totalWeight,
         ]);
     }
@@ -232,60 +216,65 @@ class CustomerController extends Controller
      */
     public function placeOrder(Request $request)
     {
-        $request->validate([
+        // Validate all required fields
+        $validated = $request->validate([
             'nama_pembeli' => 'required|string|max:255',
-            'alamat' => 'required|string',
             'no_telp_pembeli' => 'required|string|max:20',
+            'wilayah' => 'required|in:Jakarta,Depok,Bekasi,Tangerang,Bogor,Jawa Barat,Jawa Tengah,Jawa Timur',
+            'alamat' => 'required|string',
+            'ongkir' => 'required|numeric|min:0',
         ]);
 
         $cart = Session::get('cart', []);
 
         if (empty($cart)) {
-            return redirect()->route('customer.catalog')
-                ->with('error', 'Keranjang kosong!');
+            return redirect()->route('customer.catalog')->with('error', 'Keranjang kosong!');
         }
 
         DB::beginTransaction();
 
         try {
-            // 1. Generate transaction number
-            $lastTransaksi = Transaksi::orderBy('id', 'desc')->first();
-            $noTransaksi = $lastTransaksi ? $lastTransaksi->no_transaksi + 1 : 1;
+            // Generate unique transaction number
+            $noTransaksi = 'TRX' . date('Ymd') . str_pad(Transaksi::whereDate('created_at', today())->count() + 1, 4, '0', STR_PAD_LEFT);
 
-            // 2. Determine wilayah from address
-            $alamat = strtolower($request->alamat);
-            $wilayah = $this->determineWilayah($alamat);
-
-            // 3. Create transaction (status: pending)
-            $transaksi = Transaksi::create([
-                'no_transaksi' => $noTransaksi,
-                'id_kasir' => null, // Will be set when kasir validates
-                'nama_pembeli' => $request->nama_pembeli,
-                'alamat' => $request->alamat,
-                'no_telp_pembeli' => $request->no_telp_pembeli,
-                'wilayah' => $wilayah,
-                'status' => 'pending',
-                'metode_pembayaran' => null, // Will be set during validation
-                'total_harga' => 0, // Will be calculated
-                'ongkir' => 0, // Will be calculated
-                'pemasukan' => 0, // Will be calculated
-            ]);
-
-            // 4. Create transaction items
+            // Calculate total harga from cart
+            $totalHarga = 0;
             foreach ($cart as $id => $item) {
-                TransaksiItem::create([
-                    'transaksi_id' => $transaksi->id,
-                    'id_kaos' => $id,
-                    'qty' => $item['quantity'],
-                ]);
+                $kaos = Kaos::find($id);
+                if ($kaos) {
+                    $totalHarga += $kaos->harga_jual * $item['quantity'];
+                }
             }
 
-            // 5. Calculate and save totals
-            $transaksi->load('items.kaos'); // Eager load for calculation
-            $transaksi->calculateTotals();
-            $transaksi->save();
+            // Create transaction (status: pending)
+            $transaksi = Transaksi::create([
+                'no_transaksi' => $noTransaksi,
+                'nama_pembeli' => $validated['nama_pembeli'],
+                'alamat' => $validated['alamat'],
+                'no_telp_pembeli' => $validated['no_telp_pembeli'],
+                'wilayah' => $validated['wilayah'],
+                'total_harga' => $totalHarga,
+                'ongkir' => $validated['ongkir'],
+                'pemasukan' => $totalHarga + $validated['ongkir'], // Grand total
+                'status' => 'pending',
+                'metode_pembayaran' => 'Bank Transfer',
+            ]);
 
-            // 6. Clear cart
+            // Create item entries
+            foreach ($cart as $id => $item) {
+                $kaos = Kaos::find($id);
+                if ($kaos) {
+                    TransaksiItem::create([
+                        'transaksi_id' => $transaksi->id,
+                        'id_kaos' => $id,
+                        'qty' => $item['quantity'],
+                        'harga' => $kaos->harga_jual,
+                        'subtotal' => $kaos->harga_jual * $item['quantity'],
+                    ]);
+                }
+            }
+
+            // Clear cart
             Session::forget('cart');
 
             DB::commit();
@@ -295,38 +284,8 @@ class CustomerController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-
-            return redirect()->back()
-                ->with('error', 'Gagal membuat pesanan: ' . $e->getMessage())
-                ->withInput();
+            return redirect()->back()->with('error', 'Gagal membuat pesanan: ' . $e->getMessage());
         }
-    }
-
-    /**
-     * Helper: Determine region from address
-     */
-    private function determineWilayah($alamat)
-    {
-        $alamat = strtolower($alamat);
-
-        $regions = [
-            'jakarta' => 'Jakarta',
-            'depok' => 'Depok',
-            'bekasi' => 'Bekasi',
-            'tangerang' => 'Tangerang',
-            'bogor' => 'Bogor',
-            'jawa barat' => 'Jawa Barat',
-            'jawa tengah' => 'Jawa Tengah',
-            'jawa timur' => 'Jawa Timur',
-        ];
-
-        foreach ($regions as $key => $value) {
-            if (strpos($alamat, $key) !== false) {
-                return $value;
-            }
-        }
-
-        return 'Jawa Barat'; // Default
     }
 
     /**
@@ -334,7 +293,7 @@ class CustomerController extends Controller
      */
     public function orderSuccess($id)
     {
-        $transaksi = Transaksi::with('items.kaos')->findOrFail($id);
+        $transaksi = Transaksi::with('transaksiItems.kaos')->findOrFail($id);
 
         return view('customer.order-success', compact('transaksi'));
     }

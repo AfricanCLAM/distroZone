@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Checkout - DistroZone</title>
-    <script src="{{ asset('js/tailwind.js') }}"></script>
-    <script defer src="{{ asset('js/alpine.js') }}"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 
 <body class="bg-gray-50">
@@ -35,7 +35,7 @@
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <h1 class="text-3xl font-bold text-gray-900 mb-8">Checkout</h1>
 
-        <form action="{{ route('customer.checkout.place') }}" method="POST" id="checkoutForm">
+        <form action="{{ route('customer.checkout.place') }}" method="POST" id="checkoutForm" x-data="checkoutData()">
             @csrf
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -48,9 +48,11 @@
                         <div class="space-y-4">
                             <!-- Nama -->
                             <div>
-                                <label for="nama_pembeli" class="block text-sm font-medium text-gray-700 mb-2">Nama Lengkap <span class="text-red-600">*</span></label>
+                                <label for="nama_pembeli" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Nama Lengkap <span class="text-red-500">*</span>
+                                </label>
                                 <input type="text" name="nama_pembeli" id="nama_pembeli" required
-                                    value="{{ old('nama_pembeli') }}"
+                                    value="{{ old('nama_pembeli') }}" x-model="formData.nama_pembeli"
                                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 @error('nama_pembeli') border-red-500 @enderror"
                                     placeholder="Masukkan nama lengkap">
                                 @error('nama_pembeli')
@@ -60,59 +62,77 @@
 
                             <!-- No Telepon -->
                             <div>
-                                <label for="no_pembeli" class="block text-sm font-medium text-gray-700 mb-2">No. Telepon <span class="text-red-600">*</span></label>
-                                <input type="text" name="no_pembeli" id="no_pembeli" required
-                                    value="{{ old('no_pembeli') }}"
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 @error('no_pembeli') border-red-500 @enderror"
+                                <label for="no_telp_pembeli" class="block text-sm font-medium text-gray-700 mb-2">
+                                    No. Telepon <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" name="no_telp_pembeli" id="no_telp_pembeli" required
+                                    value="{{ old('no_telp_pembeli') }}" x-model="formData.no_telp_pembeli"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 @error('no_telp_pembeli') border-red-500 @enderror"
                                     placeholder="08xxxxxxxxxx">
-                                @error('no_pembeli')
+                                @error('no_telp_pembeli')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
 
-                            <!-- Wilayah (Region) -->
+                            <!-- Wilayah -->
                             <div>
-                                <label for="wilayah" class="block text-sm font-medium text-gray-700 mb-2">Wilayah Pengiriman <span class="text-red-600">*</span></label>
-                                <select name="wilayah" id="wilayah" required
+                                <label for="wilayah" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Wilayah Pengiriman <span class="text-red-500">*</span>
+                                </label>
+                                <select name="wilayah" id="wilayah" required x-model="formData.wilayah"
+                                    @change="resetShipping()"
                                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 @error('wilayah') border-red-500 @enderror">
                                     <option value="">-- Pilih Wilayah --</option>
-                                    <option value="Jakarta" {{ old('wilayah') == 'Jakarta' ? 'selected' : '' }}>Jakarta (Rp 24.000/kg)</option>
-                                    <option value="Depok" {{ old('wilayah') == 'Depok' ? 'selected' : '' }}>Depok (Rp 24.000/kg)</option>
-                                    <option value="Bekasi" {{ old('wilayah') == 'Bekasi' ? 'selected' : '' }}>Bekasi (Rp 25.000/kg)</option>
-                                    <option value="Tangerang" {{ old('wilayah') == 'Tangerang' ? 'selected' : '' }}>Tangerang (Rp 25.000/kg)</option>
-                                    <option value="Bogor" {{ old('wilayah') == 'Bogor' ? 'selected' : '' }}>Bogor (Rp 27.000/kg)</option>
-                                    <option value="Jawa Barat" {{ old('wilayah') == 'Jawa Barat' ? 'selected' : '' }}>Jawa Barat (Rp 31.000/kg)</option>
-                                    <option value="Jawa Tengah" {{ old('wilayah') == 'Jawa Tengah' ? 'selected' : '' }}>Jawa Tengah (Rp 39.000/kg)</option>
-                                    <option value="Jawa Timur" {{ old('wilayah') == 'Jawa Timur' ? 'selected' : '' }}>Jawa Timur (Rp 47.000/kg)</option>
+                                    <option value="Jakarta" {{ old('wilayah') === 'Jakarta' ? 'selected' : '' }}>Jakarta
+                                        (Rp 24.000/kg)</option>
+                                    <option value="Depok" {{ old('wilayah') === 'Depok' ? 'selected' : '' }}>Depok (Rp
+                                        24.000/kg)</option>
+                                    <option value="Bekasi" {{ old('wilayah') === 'Bekasi' ? 'selected' : '' }}>Bekasi (Rp
+                                        25.000/kg)</option>
+                                    <option value="Tangerang" {{ old('wilayah') === 'Tangerang' ? 'selected' : '' }}>
+                                        Tangerang (Rp 25.000/kg)</option>
+                                    <option value="Bogor" {{ old('wilayah') === 'Bogor' ? 'selected' : '' }}>Bogor (Rp
+                                        27.000/kg)</option>
+                                    <option value="Jawa Barat" {{ old('wilayah') === 'Jawa Barat' ? 'selected' : '' }}>
+                                        Jawa Barat (Rp 31.000/kg)</option>
+                                    <option value="Jawa Tengah" {{ old('wilayah') === 'Jawa Tengah' ? 'selected' : '' }}>
+                                        Jawa Tengah (Rp 39.000/kg)</option>
+                                    <option value="Jawa Timur" {{ old('wilayah') === 'Jawa Timur' ? 'selected' : '' }}>
+                                        Jawa Timur (Rp 47.000/kg)</option>
                                 </select>
                                 @error('wilayah')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
-                                <p class="mt-1 text-xs text-gray-500">⚠️ Pengiriman hanya tersedia untuk Pulau Jawa</p>
+                                <p class="mt-1 text-xs text-gray-500">Pilih wilayah untuk menghitung ongkir otomatis</p>
                             </div>
 
                             <!-- Alamat -->
                             <div>
-                                <label for="alamat_pembeli" class="block text-sm font-medium text-gray-700 mb-2">Alamat Lengkap <span class="text-red-600">*</span></label>
-                                <textarea name="alamat_pembeli" id="alamat_pembeli" rows="4" required
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 @error('alamat_pembeli') border-red-500 @enderror"
-                                    placeholder="Masukkan alamat lengkap (Jalan, RT/RW, Kelurahan, Kecamatan, Kota)">{{ old('alamat_pembeli') }}</textarea>
-                                @error('alamat_pembeli')
+                                <label for="alamat" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Alamat Lengkap <span class="text-red-500">*</span>
+                                </label>
+                                <textarea name="alamat" id="alamat" rows="4" required x-model="formData.alamat"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 @error('alamat') border-red-500 @enderror"
+                                    placeholder="Masukkan alamat lengkap (Jalan, RT/RW, Kelurahan, Kecamatan)">{{ old('alamat') }}</textarea>
+                                @error('alamat')
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
-                                <p class="mt-1 text-xs text-gray-500">📍 Pastikan alamat sesuai dengan wilayah yang dipilih di atas</p>
+                                <p class="mt-1 text-xs text-gray-500">⚠️ Pastikan alamat sesuai dengan wilayah yang
+                                    dipilih</p>
                             </div>
 
                             <!-- Calculate Shipping Button -->
-                            <button type="button" onclick="calculateShipping()"
-                                class="w-full bg-indigo-100 text-indigo-700 py-3 rounded-lg hover:bg-indigo-200 transition font-medium">
-                                Hitung Ongkir
+                            <button type="button" @click="calculateShipping()" :disabled="!canCalculateShipping()"
+                                :class="canCalculateShipping() ? 'bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer' : 'bg-gray-300 text-gray-500 cursor-not-allowed'"
+                                class="w-full py-3 rounded-lg transition font-medium">
+                                <span x-show="!loading">Hitung Ongkir</span>
+                                <span x-show="loading">Menghitung...</span>
                             </button>
                         </div>
                     </div>
 
                     <!-- Shipping Info (Initially Hidden) -->
-                    <div id="shippingInfo" class="bg-white rounded-lg shadow-md p-6 hidden">
+                    <div x-show="shippingCalculated" x-cloak class="bg-white rounded-lg shadow-md p-6">
                         <h2 class="text-xl font-semibold text-gray-900 mb-4">Informasi Pengiriman</h2>
 
                         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -123,15 +143,18 @@
                                         clip-rule="evenodd" />
                                 </svg>
                                 <div>
-                                    <p class="text-sm font-medium text-blue-900">Wilayah: <span id="regionName">-</span></p>
-                                    <p class="text-sm text-blue-800 mt-1">Berat: <span id="totalWeight">-</span> kg
+                                    <p class="text-sm font-medium text-blue-900">Wilayah: <span
+                                            x-text="shippingInfo.region"></span></p>
+                                    <p class="text-sm text-blue-800 mt-1">Berat: <span
+                                            x-text="shippingInfo.weight"></span> kg
                                         ({{ array_sum(array_column($cartItems, 'quantity')) }} item)</p>
-                                    <p class="text-lg font-bold text-blue-900 mt-2">Ongkir: <span id="shippingCost">-</span></p>
+                                    <p class="text-lg font-bold text-blue-900 mt-2">Ongkir: <span
+                                            x-text="shippingInfo.formatted_ongkir"></span></p>
                                 </div>
                             </div>
                         </div>
 
-                        <input type="hidden" name="ongkir" id="ongkirValue">
+                        <input type="hidden" name="ongkir" x-model="shippingInfo.ongkir">
                     </div>
 
                     <!-- Order Items -->
@@ -151,7 +174,8 @@
                                         <div>
                                             <p class="font-medium text-gray-900">{{ $item['kaos']->merek }}</p>
                                             <p class="text-sm text-gray-600">{{ $item['kaos']->warna_kaos }} -
-                                                {{ $item['kaos']->ukuran }}</p>
+                                                {{ $item['kaos']->ukuran }}
+                                            </p>
                                             <p class="text-sm text-gray-600">Qty: {{ $item['quantity'] }}</p>
                                         </div>
                                     </div>
@@ -177,15 +201,16 @@
 
                             <div class="flex justify-between text-gray-700">
                                 <span>Ongkir</span>
-                                <span class="font-semibold" id="ongkirDisplay">Belum dihitung</span>
+                                <span class="font-semibold"
+                                    x-text="shippingCalculated ? shippingInfo.formatted_ongkir : 'Belum dihitung'"></span>
                             </div>
                         </div>
 
                         <div class="border-t pt-4 mb-6">
                             <div class="flex justify-between text-xl font-bold text-gray-900">
                                 <span>Total</span>
-                                <span class="text-indigo-600" id="grandTotal">Rp
-                                    {{ number_format($subtotal, 0, ',', '.') }}</span>
+                                <span class="text-indigo-600"
+                                    x-text="formatCurrency({{ $subtotal }} + (shippingCalculated ? shippingInfo.ongkir : 0))"></span>
                             </div>
                         </div>
 
@@ -195,9 +220,11 @@
                             <p class="text-xs text-yellow-800">Transfer Bank (Konfirmasi manual oleh kasir)</p>
                         </div>
 
-                        <button type="submit" id="submitBtn" disabled
-                            class="w-full bg-gray-300 text-gray-500 py-3 rounded-lg cursor-not-allowed font-semibold mb-3">
-                            Hitung Ongkir Terlebih Dahulu
+                        <button type="submit" :disabled="!canSubmit()"
+                            :class="canSubmit() ? 'bg-indigo-600 hover:bg-indigo-700 cursor-pointer' : 'bg-gray-300 text-gray-500 cursor-not-allowed'"
+                            class="w-full text-white py-3 rounded-lg font-semibold mb-3 transition">
+                            <span x-show="canSubmit()">Buat Pesanan</span>
+                            <span x-show="!canSubmit()">Hitung Ongkir Terlebih Dahulu</span>
                         </button>
 
                         <p class="text-xs text-gray-500 text-center">
@@ -215,103 +242,105 @@
     </main>
 
     <script>
-        let calculatedOngkir = 0;
-        const subtotal = {{ $subtotal }};
+        function checkoutData() {
+            return {
+                formData: {
+                    nama_pembeli: '',
+                    no_telp_pembeli: '',
+                    wilayah: '',
+                    alamat: ''
+                },
+                shippingInfo: {
+                    ongkir: 0,
+                    formatted_ongkir: 'Rp 0',
+                    region: '',
+                    weight: 0
+                },
+                shippingCalculated: false,
+                loading: false,
 
-        // Shipping rates per kg
-        const shippingRates = {
-            'Jakarta': 24000,
-            'Depok': 24000,
-            'Bekasi': 25000,
-            'Tangerang': 25000,
-            'Bogor': 27000,
-            'Jawa Barat': 31000,
-            'Jawa Tengah': 39000,
-            'Jawa Timur': 47000
-        };
+                canCalculateShipping() {
+                    return this.formData.nama_pembeli.trim() !== '' &&
+                        this.formData.no_telp_pembeli.trim() !== '' &&
+                        this.formData.wilayah !== '' &&
+                        this.formData.alamat.trim() !== '';
+                },
 
-        function calculateShipping() {
-            const nama = document.getElementById('nama_pembeli').value.trim();
-            const noTelp = document.getElementById('no_pembeli').value.trim();
-            const wilayah = document.getElementById('wilayah').value;
-            const alamat = document.getElementById('alamat_pembeli').value.trim();
+                canSubmit() {
+                    return this.canCalculateShipping() && this.shippingCalculated;
+                },
 
-            // Validation
-            if (!nama) {
-                alert('Nama pembeli harus diisi!');
-                document.getElementById('nama_pembeli').focus();
-                return;
+                resetShipping() {
+                    this.shippingCalculated = false;
+                    this.shippingInfo = {
+                        ongkir: 0,
+                        formatted_ongkir: 'Rp 0',
+                        region: '',
+                        weight: 0
+                    };
+                },
+
+                async calculateShipping() {
+                    if (!this.canCalculateShipping()) {
+                        alert('Mohon lengkapi semua field terlebih dahulu!');
+                        return;
+                    }
+
+                    this.loading = true;
+
+                    const shippingRates = {
+                        'Jakarta': 24000,
+                        'Depok': 24000,
+                        'Bekasi': 25000,
+                        'Tangerang': 25000,
+                        'Bogor': 27000,
+                        'Jawa Barat': 31000,
+                        'Jawa Tengah': 39000,
+                        'Jawa Timur': 47000
+                    };
+
+                    // Calculate weight (3 items = 1 kg, round up)
+                    const totalItems = {{ array_sum(array_column($cartItems, 'quantity')) }};
+                    const totalWeight = Math.ceil(totalItems / 3);
+
+                    // Get shipping rate
+                    const rate = shippingRates[this.formData.wilayah] || 0;
+                    const ongkir = rate * totalWeight;
+
+                    // Simulate API delay
+                    await new Promise(resolve => setTimeout(resolve, 500));
+
+                    this.shippingInfo = {
+                        ongkir: ongkir,
+                        formatted_ongkir: this.formatCurrency(ongkir),
+                        region: this.formData.wilayah,
+                        weight: totalWeight
+                    };
+
+                    this.shippingCalculated = true;
+                    this.loading = false;
+
+                    // Scroll to shipping info
+                    setTimeout(() => {
+                        const shippingElement = document.querySelector('[x-show="shippingCalculated"]');
+                        if (shippingElement) {
+                            shippingElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    }, 100);
+                },
+
+                formatCurrency(amount) {
+                    return 'Rp ' + new Intl.NumberFormat('id-ID').format(amount);
+                }
             }
-
-            if (!noTelp) {
-                alert('No. telepon harus diisi!');
-                document.getElementById('no_pembeli').focus();
-                return;
-            }
-
-            if (!wilayah) {
-                alert('Wilayah pengiriman harus dipilih!');
-                document.getElementById('wilayah').focus();
-                return;
-            }
-
-            if (!alamat) {
-                alert('Alamat lengkap harus diisi!');
-                document.getElementById('alamat_pembeli').focus();
-                return;
-            }
-
-            // Calculate shipping
-            const totalItems = {{ array_sum(array_column($cartItems, 'quantity')) }};
-            const totalWeight = Math.ceil(totalItems / 3); // 3 items = 1 kg
-            const ratePerKg = shippingRates[wilayah];
-            calculatedOngkir = ratePerKg * totalWeight;
-
-            // Update UI
-            document.getElementById('regionName').textContent = wilayah;
-            document.getElementById('totalWeight').textContent = totalWeight;
-            document.getElementById('shippingCost').textContent = 'Rp ' + calculatedOngkir.toLocaleString('id-ID');
-            document.getElementById('ongkirValue').value = calculatedOngkir;
-            document.getElementById('ongkirDisplay').textContent = 'Rp ' + calculatedOngkir.toLocaleString('id-ID');
-
-            // Calculate grand total
-            const grandTotal = subtotal + calculatedOngkir;
-            document.getElementById('grandTotal').textContent = 'Rp ' + grandTotal.toLocaleString('id-ID');
-
-            // Show shipping info
-            document.getElementById('shippingInfo').classList.remove('hidden');
-
-            // Enable submit button
-            const submitBtn = document.getElementById('submitBtn');
-            submitBtn.disabled = false;
-            submitBtn.classList.remove('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
-            submitBtn.classList.add('bg-indigo-600', 'text-white', 'hover:bg-indigo-700', 'cursor-pointer');
-            submitBtn.textContent = 'Buat Pesanan';
-
-            // Scroll to shipping info
-            document.getElementById('shippingInfo').scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
-
-        // Validate form before submit
-        document.getElementById('checkoutForm').addEventListener('submit', function (e) {
-            if (calculatedOngkir === 0) {
-                e.preventDefault();
-                alert('Mohon hitung ongkir terlebih dahulu!');
-                return false;
-            }
-
-            const nama = document.getElementById('nama_pembeli').value.trim();
-            const noTelp = document.getElementById('no_pembeli').value.trim();
-            const wilayah = document.getElementById('wilayah').value;
-            const alamat = document.getElementById('alamat_pembeli').value.trim();
-
-            if (!nama || !noTelp || !wilayah || !alamat) {
-                e.preventDefault();
-                alert('Semua field harus diisi dengan lengkap!');
-                return false;
-            }
-        });
     </script>
+
+    <style>
+        [x-cloak] {
+            display: none !important;
+        }
+    </style>
 </body>
 
 </html>

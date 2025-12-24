@@ -9,14 +9,17 @@ class Transaksi extends Model
 {
     use HasFactory;
 
+    // Table name
     protected $table = 'transaksi';
+
+    // Primary key
     protected $primaryKey = 'id';
 
-    // Enable timestamps for created_at and validated_at
-    public $timestamps = true;
+    // Timestamps
     const CREATED_AT = 'created_at';
-    const UPDATED_AT = 'validated_at'; // Use validated_at as updated_at
+    const UPDATED_AT = null; // No updated_at column
 
+    // Mass-assignable fields (matching actual database schema)
     protected $fillable = [
         'no_transaksi',
         'id_kasir',
@@ -24,110 +27,180 @@ class Transaksi extends Model
         'alamat',
         'no_telp_pembeli',
         'wilayah',
-        'status',
+        'struk',
         'metode_pembayaran',
         'total_harga',
         'ongkir',
         'pemasukan',
-        'struk',
+        'status',
+        'validated_at',
     ];
 
+    // Cast attributes
     protected $casts = [
+        'id_kasir' => 'integer',
+        'total_harga' => 'integer',
+        'ongkir' => 'integer',
+        'pemasukan' => 'integer',
         'created_at' => 'datetime',
         'validated_at' => 'datetime',
-        'total_harga' => 'float',
-        'ongkir' => 'float',
-        'pemasukan' => 'float',
     ];
 
-    // Relationships
+    // --- RELATIONSHIPS ---
+
+    /**
+     * Transaction belongs to a kasir (user)
+     */
     public function kasir()
     {
         return $this->belongsTo(User::class, 'id_kasir', 'id');
     }
 
-    public function items()
+    /**
+     * Transaction has many transaction items
+     * Using correct relationship name matching the actual table
+     */
+    public function transaksiItems()
     {
         return $this->hasMany(TransaksiItem::class, 'transaksi_id', 'id');
     }
 
-    // Status helpers
+    /**
+     * Alias for transaksiItems for backward compatibility
+     */
+    public function items()
+    {
+        return $this->transaksiItems();
+    }
+
+    // --- HELPER METHODS ---
+
+    /**
+     * Check if transaction is pending
+     */
     public function isPending()
     {
         return $this->status === 'pending';
     }
 
+    /**
+     * Check if transaction is validated
+     */
     public function isValidated()
     {
         return $this->status === 'validated';
     }
 
+    /**
+     * Check if transaction is completed
+     */
     public function isCompleted()
     {
         return $this->status === 'completed';
     }
 
+    /**
+     * Check if transaction is rejected
+     */
     public function isRejected()
     {
         return $this->status === 'rejected';
     }
 
-    // Calculate totals (these should be called before saving)
-    public function calculateTotals()
+    /**
+     * Check if transaction is cancelled
+     */
+    public function isCancelled()
     {
-        // Calculate subtotal from items
-        $this->total_harga = $this->items->sum(function ($item) {
-            return $item->qty * $item->kaos->harga_jual;
-        });
-
-        // Calculate shipping
-        $this->ongkir = $this->calculateShipping();
-
-        // Grand total
-        $this->pemasukan = $this->total_harga + $this->ongkir;
+        return $this->isRejected(); // Rejected = Cancelled
     }
 
-    private function calculateShipping()
+    /**
+     * Calculate total weight in kg (3 items = 1 kg, rounded up)
+     */
+    public function getTotalBeratAttribute()
     {
-        $totalItems = $this->items->sum('qty');
-        $totalWeight = ceil($totalItems / 3); // 3 items = 1 kg
-
-        $rates = [
-            'jakarta' => 24000,
-            'depok' => 24000,
-            'bekasi' => 25000,
-            'tangerang' => 25000,
-            'bogor' => 27000,
-            'jawa barat' => 31000,
-            'jawa tengah' => 39000,
-            'jawa timur' => 47000,
-        ];
-
-        $alamat = strtolower($this->alamat);
-
-        foreach ($rates as $region => $rate) {
-            if (strpos($alamat, $region) !== false) {
-                return $rate * $totalWeight;
-            }
-        }
-
-        // Default to Jawa Barat if no match
-        return $rates['jawa barat'] * $totalWeight;
+        $totalItems = $this->transaksiItems->sum('qty');
+        return ceil($totalItems / 3);
     }
 
-    // Formatted attributes
-    public function getFormattedTotalHargaAttribute()
+    /**
+     * Get grand total (should match pemasukan field)
+     */
+    public function getGrandTotalAttribute()
     {
-        return 'Rp ' . number_format($this->total_harga, 0, ',', '.');
+        return $this->pemasukan;
     }
 
-    public function getFormattedOngkirAttribute()
-    {
-        return 'Rp ' . number_format($this->ongkir, 0, ',', '.');
-    }
-
+    /**
+     * Get formatted grand total
+     */
     public function getFormattedGrandTotalAttribute()
     {
+        return 'Rp ' . number_format($this->grand_total, 0, ',', '.');
+    }
+
+    /**
+     * Get waktu transaksi (alias for created_at)
+     */
+    public function getWaktuTransaksiAttribute()
+    {
+        return $this->created_at;
+    }
+
+    /**
+     * Get formatted pemasukan
+     */
+    public function getFormattedPemasukanAttribute()
+    {
         return 'Rp ' . number_format($this->pemasukan, 0, ',', '.');
+    }
+
+    /**
+     * Scope: Get only pending transactions
+     */
+    public function scopePending($query)
+    {
+        return $query->where('status', 'pending');
+    }
+
+    /**
+     * Scope: Get only completed/validated transactions
+     */
+    public function scopeCompleted($query)
+    {
+        return $query->whereIn('status', ['validated']);
+    }
+
+    /**
+     * Scope: Get transactions by kasir
+     */
+    public function scopeByKasir($query, $kasirId)
+    {
+        return $query->where('id_kasir', $kasirId);
+    }
+
+    /**
+     * Scope: Get transactions by date range
+     */
+    public function scopeDateRange($query, $startDate, $endDate)
+    {
+        return $query->whereBetween('created_at', [$startDate, $endDate]);
+    }
+
+    /**
+     * Scope: Get transactions by wilayah
+     */
+    public function scopeByWilayah($query, $wilayah)
+    {
+        return $query->where('wilayah', $wilayah);
+    }
+
+    /**
+     * Scope: Get transactions by payment method
+     */
+    public function scopeByPaymentMethod($query, $method)
+    {
+        return $query->where('metode_pembayaran', $method);
     }
 }

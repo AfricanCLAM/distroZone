@@ -68,7 +68,6 @@ class AdminController extends Controller
         ]);
 
         $data = $request->except('foto');
-        $data['password'] = Hash::make($request->password);
 
         // Handle photo upload
         if ($request->hasFile('foto')) {
@@ -104,11 +103,6 @@ class AdminController extends Controller
         ]);
 
         $data = $request->except(['foto', 'password']);
-
-        // Update password if provided
-        if ($request->filled('password')) {
-            $data['password'] = Hash::make($request->password);
-        }
 
         // Handle photo upload
         if ($request->hasFile('foto')) {

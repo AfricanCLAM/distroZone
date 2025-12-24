@@ -1,11 +1,5 @@
 > Feature and Improvement
-- adding checkout page
-- fix checkout
 - add edit profile
-- add "show password" on login page
-- adjust ItemTransaksi Model to match database
-- fix TransaksiController
-
 
 > Responsive
 - fix mobile responsive on catalog
