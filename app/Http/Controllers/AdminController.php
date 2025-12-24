@@ -4,10 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Kaos;
-use App\Models\Laporan;
 use App\Models\Transaksi;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
 class AdminController extends Controller
@@ -42,9 +40,27 @@ class AdminController extends Controller
 
     // ==================== KARYAWAN MANAGEMENT ====================
 
-    public function karyawanIndex()
+    public function karyawanIndex(Request $request)
     {
-        $karyawans = User::whereIn('role', ['kasir online', 'kasir offline'])->paginate(15);
+        $query = User::whereIn('role', ['kasir online', 'kasir offline']);
+
+        // Live search functionality
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('NIK', 'LIKE', "%{$search}%")
+                    ->orWhere('nama', 'LIKE', "%{$search}%")
+                    ->orWhere('username', 'LIKE', "%{$search}%");
+            });
+        }
+
+        $karyawans = $query->orderBy('nama')->paginate(15);
+
+        // If AJAX request, return partial view
+        if ($request->ajax()) {
+            return view('admin.karyawan.partials.table', compact('karyawans'))->render();
+        }
+
         return view('admin.karyawan.index', compact('karyawans'));
     }
 
@@ -57,6 +73,7 @@ class AdminController extends Controller
     {
         $request->validate([
             'nama' => 'required|string|max:255',
+            'username' => 'required|string|max:255',
             'alamat' => 'required|string',
             'password' => 'required|string|min:6',
             'no_telp' => 'required|string|max:20',
@@ -73,6 +90,19 @@ class AdminController extends Controller
         if ($request->hasFile('foto')) {
             $data['foto'] = $request->file('foto')->store('karyawan', 'public');
         }
+
+        $latestKID = User::max('kID'); // e.g. "K001"
+
+        // Extract the number part
+        $number = intval(substr($latestKID, 1)); // 1
+
+        // Increment
+        $number++;
+
+        // Rebuild with leading zeros
+        $newKID = 'K' . str_pad($number, 3, '0', STR_PAD_LEFT);
+
+        $data['kID'] = $newKID;
 
         User::create($data);
 
@@ -136,9 +166,27 @@ class AdminController extends Controller
 
     // ==================== KAOS MANAGEMENT ====================
 
-    public function kaosIndex()
+    public function kaosIndex(Request $request)
     {
-        $kaos = Kaos::orderBy('merek')->paginate(15);
+        $query = Kaos::query();
+
+        // Live search functionality
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('merek', 'LIKE', "%{$search}%")
+                    ->orWhere('tipe', 'LIKE', "%{$search}%")
+                    ->orWhere('warna_kaos', 'LIKE', "%{$search}%");
+            });
+        }
+
+        $kaos = $query->orderBy('merek')->paginate(15);
+
+        // If AJAX request, return partial view
+        if ($request->ajax()) {
+            return view('admin.kaos.partials.table', compact('kaos'))->render();
+        }
+
         return view('admin.kaos.index', compact('kaos'));
     }
 
@@ -161,6 +209,19 @@ class AdminController extends Controller
         ]);
 
         $data = $request->except('foto_kaos');
+
+        $latestKID = Kaos::max('tID'); // e.g. "T001"
+
+        // Extract the number part
+        $number = intval(substr($latestKID, 1)); // 1
+
+        // Increment
+        $number++;
+
+        // Rebuild with leading zeros
+        $newTID = 'T' . str_pad($number, 3, '0', STR_PAD_LEFT);
+
+        $data['tID'] = $newTID;
 
         // Handle photo upload
         if ($request->hasFile('foto_kaos')) {

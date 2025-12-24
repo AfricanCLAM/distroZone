@@ -32,6 +32,17 @@
                     @enderror
                 </div>
 
+                <!-- Username -->
+                <div class="mb-4">
+                    <label for="username" class="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                    <input type="text" name="username" id="username" value="{{ old('username', $karyawan->username) }}"
+                        required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 @error('username') border-red-500 @enderror">
+                    @error('username')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
                 <!-- Alamat -->
                 <div class="mb-4">
                     <label for="alamat" class="block text-sm font-medium text-gray-700 mb-2">Alamat</label>
@@ -88,15 +99,18 @@
                 <div class="mb-4">
                     <label for="shift" class="block text-sm font-medium text-gray-700 mb-2">Shift</label>
                     <select name="shift" id="shift" required
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 @error('shift') border-red-500 @enderror">
                         <option value="">Pilih shift</option>
-                        <option value="offline_siang" {{ old('shift', $karyawan->shift) === 'offline_siang' ? 'selected' : '' }}>
+
+                        <option value="offline_siang" data-role="kasir offline">
                             Kasir Offline Siang (10:00 - 15:00)
                         </option>
-                        <option value="offline_sore" {{ old('shift', $karyawan->shift) === 'offline_sore' ? 'selected' : '' }}>
+
+                        <option value="offline_sore" data-role="kasir offline">
                             Kasir Offline Sore (15:00 - 20:00)
                         </option>
-                        <option value="online" {{ old('shift', $karyawan->shift) === 'online' ? 'selected' : '' }}>
+
+                        <option value="online" data-role="kasir online">
                             Kasir Online (10:00 - 17:00)
                         </option>
                     </select>
@@ -160,9 +174,11 @@
     </div>
 
     <script>
-        document.getElementById('shift').addEventListener('change', function () {
-            const start = document.getElementById('shift_start');
-            const end = document.getElementById('shift_end');
+        document.addEventListener('DOMContentLoaded', () => {
+            const roleSelect = document.getElementById('role');
+            const shiftSelect = document.getElementById('shift');
+            const shiftStart = document.getElementById('shift_start');
+            const shiftEnd = document.getElementById('shift_end');
 
             const shifts = {
                 offline_siang: { start: '10:00', end: '15:00' },
@@ -170,10 +186,48 @@
                 online: { start: '10:00', end: '17:00' }
             };
 
-            if (shifts[this.value]) {
-                start.value = shifts[this.value].start;
-                end.value = shifts[this.value].end;
+            function updateShiftByRole() {
+                const role = roleSelect.value;
+
+                // Reset
+                shiftSelect.disabled = false;
+                shiftSelect.value = '';
+
+                [...shiftSelect.options].forEach(option => {
+                    if (!option.value) return;
+
+                    option.hidden = option.dataset.role !== role;
+                });
+
+                // Kasir online: force & lock
+                if (role === 'kasir online') {
+                    shiftSelect.value = 'online';
+                    shiftSelect.disabled = true;
+                    applyShiftTime('online');
+                } else {
+                    clearShiftTime();
+                }
             }
+
+            function applyShiftTime(shift) {
+                if (!shifts[shift]) return;
+                shiftStart.value = shifts[shift].start;
+                shiftEnd.value = shifts[shift].end;
+            }
+
+            function clearShiftTime() {
+                shiftStart.value = '';
+                shiftEnd.value = '';
+            }
+
+            roleSelect.addEventListener('change', updateShiftByRole);
+
+            shiftSelect.addEventListener('change', function () {
+                applyShiftTime(this.value);
+            });
+
+            // Handle old() values on page load
+            updateShiftByRole();
         });
     </script>
 

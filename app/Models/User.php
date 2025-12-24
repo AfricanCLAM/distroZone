@@ -22,6 +22,7 @@ class User extends Authenticatable
     // Mass-assignable fields
     protected $fillable = [
         'nama',
+        'username',
         'alamat',
         'password',
         'no_telp',

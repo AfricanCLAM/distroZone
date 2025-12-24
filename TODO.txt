@@ -1,5 +1,6 @@
 > Feature and Improvement
 - add edit profile
 
+
 > Responsive
 - fix mobile responsive on catalog

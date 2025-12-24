@@ -14,7 +14,7 @@
 
     <!-- Scripts -->
     <script src="{{ asset('js/tailwind.js') }}"></script>
-<script defer src="{{ asset('js/alpine.js') }}"></script>
+    <script defer src="{{ asset('js/alpine.js') }}"></script>
 
 </head>
 

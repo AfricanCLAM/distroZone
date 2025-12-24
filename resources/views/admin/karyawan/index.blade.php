@@ -4,9 +4,11 @@
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 Data Karyawan
             </h2>
-            <a href="{{ route('admin.karyawan.create') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg inline-flex items-center transition">
+            <a href="{{ route('admin.karyawan.create') }}"
+                class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg inline-flex items-center transition">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
                 Tambah Karyawan
             </a>
@@ -14,69 +16,69 @@
     </x-slot>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="bg-white rounded-lg shadow-md overflow-hidden">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">NIK</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No. Telp</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Shift</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    @forelse($karyawans as $karyawan)
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $karyawan->NIK }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center">
-                                    @if($karyawan->foto)
-                                        <img src="{{ asset('storage/' . $karyawan->foto) }}" alt="{{ $karyawan->nama }}" class="h-20 w-20 rounded-full object-cover mr-3">
-                                    @else
-                                        <div class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center mr-3">
-                                            <span class="text-gray-600 font-semibold">{{ substr($karyawan->nama, 0, 1) }}</span>
-                                        </div>
-                                    @endif
-                                    <span class="text-sm font-medium text-gray-900">{{ $karyawan->nama }}</span>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                    {{ $karyawan->role === 'kasir online' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800' }}">
-                                    {{ ucwords($karyawan->role) }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $karyawan->no_telp }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                @if($karyawan->shift_start && $karyawan->shift_end)
-                                    {{ $karyawan->shift_start->format('H:i') }} - {{ $karyawan->shift_end->format('H:i') }}
-                                @else
-                                    <span class="text-gray-400">-</span>
-                                @endif
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <a href="{{ route('admin.karyawan.edit', $karyawan->id) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</a>
-                                <form action="{{ route('admin.karyawan.destroy', $karyawan->id) }}" method="POST" class="inline" onsubmit="return confirm('Yakin ingin menghapus karyawan ini?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-red-600 hover:text-red-900">Hapus</button>
-                                </form>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" class="px-6 py-4 text-center text-gray-500">Belum ada data karyawan.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-
-            <!-- Pagination -->
-            <div class="px-6 py-4 bg-gray-50">
-                {{ $karyawans->links() }}
+        <!-- Live Search -->
+        <div class="bg-white rounded-lg shadow-md p-4 mb-6" x-data="liveSearch('{{ route('admin.karyawan.index') }}')">
+            <div class="flex items-center space-x-3">
+                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input type="text" x-model="searchQuery" @input.debounce.500ms="performSearch()"
+                    placeholder="Cari berdasarkan NIK, Nama, atau No. Telp..."
+                    class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                <div x-show="loading" class="flex items-center text-sm text-gray-500">
+                    <svg class="animate-spin h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                        </circle>
+                        <path class="opacity-75" fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                        </path>
+                    </svg>
+                    Mencari...
+                </div>
             </div>
+            <p class="text-xs text-gray-500 mt-2">Ketik minimal 1 karakter untuk mencari</p>
+        </div>
+
+        <!-- Table Container -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden" id="karyawan-table-container">
+            @include('admin.karyawan.partials.table', ['karyawans' => $karyawans])
         </div>
     </div>
+
+        <script>
+            function liveSearch(url) {
+                return {
+                    searchQuery: '',
+                    loading: false,
+
+                    async performSearch() {
+                        this.loading = true;
+
+                        try {
+                            const params = new URLSearchParams();
+                            if (this.searchQuery) {
+                                params.append('search', this.searchQuery);
+                            }
+
+                            const response = await fetch(`${url}?${params.toString()}`, {
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'Accept': 'text/html'
+                                }
+                            });
+
+                            if (response.ok) {
+                                const html = await response.text();
+                                document.getElementById('karyawan-table-container').innerHTML = html;
+                            }
+                        } catch (error) {
+                            console.error('Search error:', error);
+                        } finally {
+                            this.loading = false;
+                        }
+                    }
+                }
+            }
+        </script>
 </x-app-layout>
