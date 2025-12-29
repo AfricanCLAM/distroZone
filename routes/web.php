@@ -77,6 +77,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Laporan (Financial Reports)
     Route::prefix('laporan')->name('laporan.')->group(function () {
         Route::get('/', [AdminController::class, 'laporanIndex'])->name('index');
+        Route::get('/transaksi/{id}', [AdminController::class, 'transaksiDetail'])->name('transaksi.detail');
     });
 });
 

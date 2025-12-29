@@ -131,6 +131,8 @@
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Metode</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Detail</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Struk</th>
                         </tr>
                     </thead>
@@ -166,10 +168,16 @@
                                                 <td class="px-6 py-4 whitespace-nowrap">
                                                     <span
                                                         class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                                                             {{ $transaksi->metode_pembayaran === 'Bank Transfer' ? 'bg-blue-100 text-blue-800' :
+                                                                                                                                         {{ $transaksi->metode_pembayaran === 'Bank Transfer' ? 'bg-blue-100 text-blue-800' :
                             ($transaksi->metode_pembayaran === 'Cash' ? 'bg-green-100 text-green-800' : 'bg-purple-100 text-purple-800') }}">
                                                         {{ $transaksi->metode_pembayaran }}
                                                     </span>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                                    <a href="{{ route('admin.laporan.transaksi.detail', $transaksi->id) }}"
+                                                        class="text-indigo-600 hover:text-indigo-900 inline-flex items-center">
+                                                        Detail
+                                                    </a>
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm">
                                                     @if($transaksi->struk)

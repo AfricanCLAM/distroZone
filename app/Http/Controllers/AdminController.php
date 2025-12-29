@@ -332,4 +332,15 @@ class AdminController extends Controller
             'kasirs'
         ));
     }
+
+    /**
+     * Show transaction detail for admin
+     */
+    public function transaksiDetail($id)
+    {
+        $transaksi = Transaksi::with(['transaksiItems.kaos', 'kasir'])
+            ->findOrFail($id);
+
+        return view('admin.laporan.detail', compact('transaksi'));
+    }
 }
