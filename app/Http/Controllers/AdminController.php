@@ -88,7 +88,7 @@ class AdminController extends Controller
 
         // Handle photo upload
         if ($request->hasFile('foto')) {
-            $data['foto'] = $request->file('foto')->store('karyawan', 'public');
+            $data['foto'] = $request->file('foto')->store('uploads/users', 'public');
         }
 
         $latestKID = User::max('kID'); // e.g. "K001"
@@ -140,7 +140,7 @@ class AdminController extends Controller
             if ($karyawan->foto) {
                 Storage::disk('public')->delete($karyawan->foto);
             }
-            $data['foto'] = $request->file('foto')->store('karyawan', 'public');
+            $data['foto'] = $request->file('foto')->store('uploads/users', 'public');
         }
 
         $karyawan->update($data);
@@ -225,7 +225,7 @@ class AdminController extends Controller
 
         // Handle photo upload
         if ($request->hasFile('foto_kaos')) {
-            $data['foto_kaos'] = $request->file('foto_kaos')->store('kaos', 'public');
+            $data['foto_kaos'] = $request->file('foto_kaos')->store('uploads/kaos', 'public');
         }
 
         Kaos::create($data);
@@ -263,7 +263,7 @@ class AdminController extends Controller
             if ($kaos->foto_kaos) {
                 Storage::disk('public')->delete($kaos->foto_kaos);
             }
-            $data['foto_kaos'] = $request->file('foto_kaos')->store('kaos', 'public');
+            $data['foto_kaos'] = $request->file('foto_kaos')->store('uploads/kaos', 'public');
         }
 
         $kaos->update($data);

@@ -24,10 +24,13 @@ class CheckRole
 
         $user = Auth::user();
 
-        // Check if user has one of the allowed roles
-        if (in_array($user->role, $roles)) {
+        // Normalize roles (important when roles contain spaces)
+        $allowedRoles = array_map('trim', $roles);
+
+        if (in_array($user->role, $allowedRoles, true)) {
             return $next($request);
         }
+
 
         // Redirect based on user's actual role
         return $this->redirectToRoleDashboard($user->role);
@@ -38,7 +41,8 @@ class CheckRole
      */
     private function redirectToRoleDashboard($role)
     {
-        return match($role) {
+
+        return match ($role) {
             'admin' => redirect()->route('admin.dashboard')
                 ->with('error', 'Anda tidak memiliki akses ke halaman tersebut.'),
             'kasir online' => redirect()->route('kasir.dashboard')

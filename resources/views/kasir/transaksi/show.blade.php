@@ -2,9 +2,9 @@
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Detail Transaksi #{{ str_pad($transaksi->id, 6, '0', STR_PAD_LEFT) }}
+                Detail Transaksi {{ $transaksi->no_transaksi }}
             </h2>
-            <a href="{{ route('kasir.transaksi.index') }}" class="text-indigo-600 hover:text-indigo-800 font-medium">
+            <a href="{{ !$transaksi->isValidated() & !$transaksi->isRejected() ?route('kasir.transaksi.index') : route('kasir.history') }}" class="text-indigo-600 hover:text-indigo-800 font-medium">
                 ← Kembali
             </a>
         </div>
@@ -18,7 +18,7 @@
                     class="px-4 py-2 inline-flex text-sm leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
                     Menunggu Verifikasi
                 </span>
-            @elseif($transaksi->isCompleted())
+            @elseif($transaksi->isValidated())
                 <span
                     class="px-4 py-2 inline-flex text-sm leading-5 font-semibold rounded-full bg-green-100 text-green-800">
                     Selesai
@@ -40,16 +40,18 @@
                 </div>
                 <div>
                     <p class="text-sm text-gray-500">No. Telepon</p>
-                    <p class="text-base font-medium text-gray-900">{{ $transaksi->no_pembeli }}</p>
+                    <p class="text-base font-medium text-gray-900">{{ $transaksi->no_telp_pembeli }}</p>
                 </div>
                 <div class="md:col-span-2">
-                    <p class="text-sm text-gray-500">Alamat Pengiriman</p>
-                    <p class="text-base font-medium text-gray-900">{{ $transaksi->alamat_pembeli }}</p>
+                    <p class="text-sm text-gray-500">Alamat Pengiriman Dan Wilayah</p>
+                    <p class="text-base font-medium text-gray-900">{{ $transaksi->alamat }} - {{ $transaksi->wilayah }}
+                    </p>
                 </div>
                 <div>
                     <p class="text-sm text-gray-500">Tanggal Pesanan</p>
                     <p class="text-base font-medium text-gray-900">
-                        {{ $transaksi->waktu_transaksi->format('d/m/Y H:i:s') }}</p>
+                        {{ $transaksi->waktu_transaksi->format('d/m/Y H:i:s') }}
+                    </p>
                 </div>
                 <div>
                     <p class="text-sm text-gray-500">Total Berat</p>
@@ -81,16 +83,19 @@
                                 <p class="text-sm text-gray-600">{{ $item->kaos->warna_kaos }} - {{ $item->kaos->ukuran }}
                                 </p>
                                 <p class="text-sm text-gray-600 mt-1">{{ $item->jumlah }} x Rp
-                                    {{ number_format($item->kaos->harga_jual, 0, ',', '.') }}</p>
+                                    {{ number_format($item->kaos->harga_jual, 0, ',', '.') }}
+                                </p>
                                 <div class="mt-2">
-                                    @if($item->kaos->stok_kaos >= $item->jumlah)
-                                        <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
-                                            ✓ Stok tersedia ({{ $item->kaos->stok_kaos }} pcs)
-                                        </span>
-                                    @else
-                                        <span class="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">
-                                            ⚠️ Stok tidak cukup ({{ $item->kaos->stok_kaos }} pcs tersedia)
-                                        </span>
+                                    @if($transaksi->isPending())
+                                        @if($item->kaos->stok_kaos >= $item->jumlah)
+                                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                                                ✓ Stok tersedia ({{ $item->kaos->stok_kaos }} pcs)
+                                            </span>
+                                        @else
+                                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">
+                                                ⚠️ Stok tidak cukup ({{ $item->kaos->stok_kaos }} pcs tersedia)
+                                            </span>
+                                        @endif
                                     @endif
                                 </div>
                             </div>
@@ -209,7 +214,7 @@
                     </form>
                 </div>
             </div>
-        @elseif($transaksi->isCompleted())
+        @elseif($transaksi->isvalidated())
             <div class="bg-green-50 border border-green-200 rounded-lg p-6">
                 <div class="flex items-center">
                     <svg class="h-8 w-8 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

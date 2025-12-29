@@ -93,7 +93,6 @@ Route::middleware(['auth', 'role:kasir online'])->prefix('kasir')->name('kasir.'
         Route::get('/{id}', [TransaksiController::class, 'show'])->name('show');
         Route::post('/{id}/confirm', [TransaksiController::class, 'confirm'])->name('confirm');
         Route::post('/{id}/cancel', [TransaksiController::class, 'cancel'])->name('cancel');
-        Route::get('/{id}/download-struk', [TransaksiController::class, 'downloadStruk'])->name('download-struk');
     });
 
     // Transaction History (Kasir's own transactions)
@@ -119,3 +118,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+Route::middleware(['auth', 'role:admin,kasir online'])
+    ->get('/transaksi/{id}/download-struk', [TransaksiController::class, 'downloadStruk'])
+    ->name('transaksi.download-struk');

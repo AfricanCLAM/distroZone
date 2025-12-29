@@ -40,7 +40,7 @@
                                 <tr class="hover:bg-gray-50">
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="text-sm font-medium text-gray-900">
-                                            #{{ str_pad($transaksi->id, 6, '0', STR_PAD_LEFT) }}
+                                            {{ $transaksi->no_transaksi }}
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
@@ -56,7 +56,7 @@
                                             {{ $transaksi->nama_pembeli }}
                                         </div>
                                         <div class="text-xs text-gray-500">
-                                            {{ $transaksi->no_pembeli }}
+                                            {{ $transaksi->no_telp_pembeli }}
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
@@ -107,6 +107,11 @@
                 </div>
             </div>
 
+            @php
+                $validatedTransaksis = $transaksis->filter(fn($t) => $t->isValidated());
+            @endphp
+
+
             <!-- Summary Cards -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="bg-white rounded-lg shadow-md p-6">
@@ -133,7 +138,7 @@
                         <div class="ml-4">
                             <p class="text-sm text-gray-500">Total Item Terjual</p>
                             <p class="text-2xl font-bold text-gray-900">
-                                {{ $transaksis->sum(function($t) { return $t->items->sum('jumlah'); }) }}
+                                {{ $validatedTransaksis->sum(function($t) { return $t->items->sum('jumlah'); }) }}
                             </p>
                         </div>
                     </div>
@@ -149,7 +154,7 @@
                         <div class="ml-4">
                             <p class="text-sm text-gray-500">Total Penjualan</p>
                             <p class="text-2xl font-bold text-gray-900">
-                                Rp {{ number_format($transaksis->sum('grand_total'), 0, ',', '.') }}
+                                Rp {{ number_format($validatedTransaksis->sum('grand_total'), 0, ',', '.') }}
                             </p>
                         </div>
                     </div>

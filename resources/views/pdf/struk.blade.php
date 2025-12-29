@@ -49,7 +49,7 @@
 <body>
     <div class="center bold">
         <div style="font-size: 14px;">DISTROZONE</div>
-        <div style="font-size: 10px;">{{ $transaksi->alamat ?? 'Jl. Raya Industri, Cikarang' }}</div>
+        <div style="font-size: 10px;">Jl. Raya Pegangsaan Timur No.29H</div>
     </div>
 
     <div class="separator"></div>
@@ -59,6 +59,7 @@
         <div>Tanggal: {{ $transaksi->created_at->format('d/m/Y H:i') }}</div>
         <div>Pembeli: {{ $transaksi->nama_pembeli }}</div>
         <div>No HP: {{ $transaksi->no_telp_pembeli }}</div>
+        <div>Alamat: {{ $transaksi->alamat }}</div>
         <div>Wilayah: {{ $transaksi->wilayah }}</div>
         <div>Kasir: {{ $transaksi->kasir->nama ?? 'System' }}</div>
     </div>

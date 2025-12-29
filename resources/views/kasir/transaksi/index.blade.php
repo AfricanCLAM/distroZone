@@ -31,7 +31,7 @@
                             <div class="flex flex-col md:flex-row md:items-center md:justify-between">
                                 <div>
                                     <h3 class="text-lg font-semibold text-gray-900">
-                                        Transaksi #{{ str_pad($transaksi->id, 6, '0', STR_PAD_LEFT) }}
+                                        Transaksi {{ $transaksi->no_transaksi }}
                                     </h3>
                                     <p class="text-sm text-gray-600 mt-1">
                                         {{ $transaksi->waktu_transaksi->format('d/m/Y H:i') }}
@@ -56,12 +56,12 @@
                                 </div>
                                 <div>
                                     <p class="text-xs text-gray-500">No. Telepon</p>
-                                    <p class="text-sm font-medium text-gray-900">{{ $transaksi->no_pembeli }}</p>
+                                    <p class="text-sm font-medium text-gray-900">{{ $transaksi->no_telp_pembeli }}</p>
                                 </div>
                                 <div>
                                     <p class="text-xs text-gray-500">Alamat</p>
                                     <p class="text-sm font-medium text-gray-900">
-                                        {{ Str::limit($transaksi->alamat_pembeli, 50) }}</p>
+                                        {{ Str::limit($transaksi->alamat, 50) }}</p>
                                 </div>
                             </div>
                         </div>

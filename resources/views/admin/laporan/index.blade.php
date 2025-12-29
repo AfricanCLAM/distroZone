@@ -32,7 +32,8 @@
                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
                         <option value="">Semua Metode</option>
                         <option value="Bank Transfer" {{ request('metode_pembayaran') === 'Bank Transfer' ? 'selected' : '' }}>Bank Transfer</option>
-                        <option value="Tunai" {{ request('metode_pembayaran') === 'Tunai' ? 'selected' : '' }}>Tunai</option>
+                        <option value="Tunai" {{ request('metode_pembayaran') === 'Tunai' ? 'selected' : '' }}>Tunai
+                        </option>
                         <option value="QRIS" {{ request('metode_pembayaran') === 'QRIS' ? 'selected' : '' }}>QRIS</option>
                     </select>
                 </div>
@@ -137,7 +138,7 @@
                         @forelse($transaksis as $transaksi)
                                             <tr class="hover:bg-gray-50">
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                    #{{ str_pad($transaksi->no_transaksi, 6, '0', STR_PAD_LEFT) }}
+                                                    {{ str_pad($transaksi->no_transaksi, 6, '0', STR_PAD_LEFT) }}
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                     {{ $transaksi->validated_at->format('d/m/Y H:i') }}
@@ -146,7 +147,12 @@
                                                     {{ $transaksi->kasir->nama ?? 'N/A' }}
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                    {{ $transaksi->nama_pembeli }}
+                                                    <div class="text-sm font-medium text-gray-900">
+                                                        {{ $transaksi->nama_pembeli ?? 'N/A (Pembeli Offline)' }}
+                                                    </div>
+                                                    <div class="text-xs text-gray-500">
+                                                        {{ $transaksi->no_telp_pembeli ?? '' }}
+                                                    </div>
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                     Rp {{ number_format($transaksi->total_harga, 0, ',', '.') }}
@@ -160,14 +166,14 @@
                                                 <td class="px-6 py-4 whitespace-nowrap">
                                                     <span
                                                         class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                                         {{ $transaksi->metode_pembayaran === 'Bank Transfer' ? 'bg-blue-100 text-blue-800' :
+                                                                             {{ $transaksi->metode_pembayaran === 'Bank Transfer' ? 'bg-blue-100 text-blue-800' :
                             ($transaksi->metode_pembayaran === 'Cash' ? 'bg-green-100 text-green-800' : 'bg-purple-100 text-purple-800') }}">
                                                         {{ $transaksi->metode_pembayaran }}
                                                     </span>
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm">
                                                     @if($transaksi->struk)
-                                                        <a href="{{ route('kasir.transaksi.download-struk', $transaksi->id) }}"
+                                                        <a href="{{ route('transaksi.download-struk', $transaksi->id) }}"
                                                             class="text-indigo-600 hover:text-indigo-900 inline-flex items-center">
                                                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Transaksi;
-use App\Models\TransaksiItem;
-use App\Models\Kaos;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -106,10 +104,11 @@ class TransaksiController extends Controller
     {
         $transaksi = Transaksi::findOrFail($id);
 
-        if ($transaksi->isCompleted() || $transaksi->isValidated()) {
+        if ($transaksi->isValidated()) {
             return redirect()->back()->with('error', 'Transaksi yang sudah selesai tidak bisa dibatalkan.');
         }
 
+        $transaksi->id_kasir = Auth::user()->id;
         $transaksi->status = 'rejected';
         $transaksi->save();
 
@@ -140,7 +139,7 @@ class TransaksiController extends Controller
     {
         $transaksi = Transaksi::with('transaksiItems.kaos')->findOrFail($id);
 
-        if (!$transaksi->isCompleted() && !$transaksi->isValidated()) {
+        if (!$transaksi->isValidated()) {
             return redirect()->back()->with('error', 'Struk hanya tersedia untuk transaksi yang sudah selesai.');
         }
 
@@ -156,7 +155,7 @@ class TransaksiController extends Controller
     {
         $transaksis = Transaksi::with(['transaksiItems.kaos'])
             ->where('id_kasir', Auth::user()->id)
-            ->whereIn('status', ['validated'])
+            ->whereIn('status', ['validated','rejected'])
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 

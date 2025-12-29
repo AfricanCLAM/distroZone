@@ -39,8 +39,8 @@
 
             <!-- Order ID -->
             <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-4 inline-block">
-                <p class="text-sm text-indigo-700 mb-1">Nomor Pesanan</p>
-                <p class="text-2xl font-bold text-indigo-900">#{{ str_pad($transaksi->id, 6, '0', STR_PAD_LEFT) }}</p>
+                <p class="text-sm text-indigo-700 mb-1">No Transaksi</p>
+                <p class="text-2xl font-bold text-indigo-900">{{ $transaksi->no_transaksi }}</p>
             </div>
         </div>
 
@@ -58,11 +58,11 @@
                     </div>
                     <div>
                         <p class="text-xs text-gray-500">No. Telepon</p>
-                        <p class="text-sm font-medium text-gray-900">{{ $transaksi->no_pembeli }}</p>
+                        <p class="text-sm font-medium text-gray-900">{{ $transaksi->no_telp_pembeli }}</p>
                     </div>
                     <div class="md:col-span-2">
                         <p class="text-xs text-gray-500">Alamat Pengiriman</p>
-                        <p class="text-sm font-medium text-gray-900">{{ $transaksi->alamat_pembeli }}</p>
+                        <p class="text-sm font-medium text-gray-900">{{ $transaksi->alamat }}</p>
                     </div>
                 </div>
             </div>
@@ -158,10 +158,10 @@
                 class="flex-1 bg-indigo-600 text-white text-center py-3 rounded-lg hover:bg-indigo-700 transition font-semibold">
                 Kembali ke Katalog
             </a>
-            <button onclick="window.print()"
+            {{-- <button onclick="window.print()"
                 class="flex-1 bg-white border-2 border-indigo-600 text-indigo-600 py-3 rounded-lg hover:bg-indigo-50 transition font-semibold">
                 Cetak Detail Pesanan
-            </button>
+            </button> --}}
         </div>
     </main>
 
