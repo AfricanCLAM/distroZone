@@ -12,8 +12,12 @@ use Illuminate\Support\Facades\Route;
 
 // Landing page (redirect to catalog)
 Route::get('/', function () {
-    return redirect()->route('customer.catalog');
-});
+    $kaos = \App\Models\Kaos::where('stok_kaos', '>', 0)
+        ->take(4)
+        ->get();
+
+    return view('welcome', compact('kaos'));
+})->name('welcome');
 
 // Customer catalog (public access)
 Route::prefix('catalog')->name('customer.')->group(function () {

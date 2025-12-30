@@ -15,15 +15,38 @@ class CustomerController extends Controller
     /**
      * Show kaos catalog
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Get all available kaos (in stock)
-        $kaos = Kaos::where('stok_kaos', '>', 0)
+        $kaos = Kaos::query()
+            ->where('stok_kaos', '>', 0);
+
+        // FILTER TIPE (kategori)
+        if ($request->filled('tipe')) {
+            $kaos->whereIn('tipe', $request->tipe);
+        }
+
+        // FILTER UKURAN
+        if ($request->filled('size')) {
+            $kaos->whereIn('ukuran', $request->size);
+        }
+
+        // SEARCH (merek / warna / tipe)
+        if ($request->filled('q')) {
+            $kaos->where(function ($query) use ($request) {
+                $query->where('merek', 'like', '%' . $request->q . '%')
+                    ->orWhere('warna_kaos', 'like', '%' . $request->q . '%')
+                    ->orWhere('tipe', 'like', '%' . $request->q . '%');
+            });
+        }
+
+        $kaos = $kaos
             ->orderBy('merek')
-            ->paginate(12);
+            ->paginate(12)
+            ->withQueryString(); // ⬅️ penting biar pagination bawa filter
 
         return view('customer.catalog', compact('kaos'));
     }
+
 
     /**
      * Show kaos detail
@@ -32,7 +55,11 @@ class CustomerController extends Controller
     {
         $kaos = Kaos::findOrFail($id);
 
-        return view('customer.detail', compact('kaos'));
+        $reccomendations = Kaos::where('stok_kaos', '>', 0)
+            ->take(4)
+            ->get();
+
+        return view('customer.detail', compact('kaos', 'reccomendations'));
     }
 
     /**

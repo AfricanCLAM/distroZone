@@ -1,245 +1,205 @@
-<!DOCTYPE html>
-<html lang="id">
+@extends('layouts.customer')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Checkout - DistroZone</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-</head>
+@section('content')
+    <div class="min-h-screen py-10">
 
-<body class="bg-gray-50">
-    <!-- Header -->
-    <header class="bg-white shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <div class="flex items-center">
-                    <a href="{{ route('customer.catalog') }}" class="text-2xl font-bold text-indigo-600">DISTROZONE</a>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <span class="text-gray-400">Keranjang</span>
-                    <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd"
-                            d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                            clip-rule="evenodd" />
-                    </svg>
-                    <span class="text-indigo-600 font-semibold">Checkout</span>
-                </div>
+        <!-- WRAPPER dengan margin 5% kiri kanan -->
+        <div class="max-w-[90%] mx-auto">
+
+            <!-- PAGE TITLE -->
+            <div class="mb-10">
+                <h1 class="text-4xl md:text-5xl font-black uppercase tracking-tighter">
+                    Checkout Pengiriman
+                </h1>
+                <div class="h-1 w-28 bg-primary mt-2 border-2 border-black rounded-full"></div>
             </div>
-        </div>
-    </header>
 
-    <!-- Checkout Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h1 class="text-3xl font-bold text-gray-900 mb-8">Checkout</h1>
+            <form action="{{ route('customer.checkout.place') }}" x-data="checkoutData()" method="POST" id="checkoutForm">
+                @csrf
 
-        <form action="{{ route('customer.checkout.place') }}" method="POST" id="checkoutForm" x-data="checkoutData()">
-            @csrf
+                <div class="flex flex-col lg:flex-row gap-10 items-start">
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <!-- Customer Information -->
-                <div class="lg:col-span-2 space-y-6">
-                    <!-- Personal Info -->
-                    <div class="bg-white rounded-lg shadow-md p-6">
-                        <h2 class="text-xl font-semibold text-gray-900 mb-4">Informasi Pembeli</h2>
+                    <!-- LEFT 70% -->
+                    <div class="w-full lg:w-[70%] space-y-10">
 
-                        <div class="space-y-4">
-                            <!-- Nama -->
-                            <div>
-                                <label for="nama_pembeli" class="block text-sm font-medium text-gray-700 mb-2">
-                                    Nama Lengkap <span class="text-red-500">*</span>
-                                </label>
-                                <input type="text" name="nama_pembeli" id="nama_pembeli" required
-                                    value="{{ old('nama_pembeli') }}" x-model="formData.nama_pembeli"
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 @error('nama_pembeli') border-red-500 @enderror"
-                                    placeholder="Masukkan nama lengkap">
-                                @error('nama_pembeli')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
+                        <!-- INFORMASI PEMBELI -->
+                        <section class="bg-white border-2 border-black rounded-xl p-8 shadow-retro">
+                            <div class="flex items-center gap-3 mb-6">
+                                <div
+                                    class="size-8 rounded-full bg-black text-white flex items-center justify-center font-bold border-2 border-black">
+                                    1
+                                </div>
+                                <h2 class="text-2xl font-black uppercase tracking-tight">
+                                    Informasi Pembeli
+                                </h2>
                             </div>
 
-                            <!-- No Telepon -->
-                            <div>
-                                <label for="no_telp_pembeli" class="block text-sm font-medium text-gray-700 mb-2">
-                                    No. Telepon <span class="text-red-500">*</span>
-                                </label>
-                                <input type="text" name="no_telp_pembeli" id="no_telp_pembeli" required
-                                    value="{{ old('no_telp_pembeli') }}" x-model="formData.no_telp_pembeli"
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 @error('no_telp_pembeli') border-red-500 @enderror"
-                                    placeholder="08xxxxxxxxxx">
-                                @error('no_telp_pembeli')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
-                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                            <!-- Wilayah -->
-                            <div>
-                                <label for="wilayah" class="block text-sm font-medium text-gray-700 mb-2">
-                                    Wilayah Pengiriman <span class="text-red-500">*</span>
-                                </label>
-                                <select name="wilayah" id="wilayah" required x-model="formData.wilayah"
-                                    @change="resetShipping()"
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 @error('wilayah') border-red-500 @enderror">
-                                    <option value="">-- Pilih Wilayah --</option>
-                                    <option value="Jakarta" {{ old('wilayah') === 'Jakarta' ? 'selected' : '' }}>Jakarta
-                                        (Rp 24.000/kg)</option>
-                                    <option value="Depok" {{ old('wilayah') === 'Depok' ? 'selected' : '' }}>Depok (Rp
-                                        24.000/kg)</option>
-                                    <option value="Bekasi" {{ old('wilayah') === 'Bekasi' ? 'selected' : '' }}>Bekasi (Rp
-                                        25.000/kg)</option>
-                                    <option value="Tangerang" {{ old('wilayah') === 'Tangerang' ? 'selected' : '' }}>
-                                        Tangerang (Rp 25.000/kg)</option>
-                                    <option value="Bogor" {{ old('wilayah') === 'Bogor' ? 'selected' : '' }}>Bogor (Rp
-                                        27.000/kg)</option>
-                                    <option value="Jawa Barat" {{ old('wilayah') === 'Jawa Barat' ? 'selected' : '' }}>
-                                        Jawa Barat (Rp 31.000/kg)</option>
-                                    <option value="Jawa Tengah" {{ old('wilayah') === 'Jawa Tengah' ? 'selected' : '' }}>
-                                        Jawa Tengah (Rp 39.000/kg)</option>
-                                    <option value="Jawa Timur" {{ old('wilayah') === 'Jawa Timur' ? 'selected' : '' }}>
-                                        Jawa Timur (Rp 47.000/kg)</option>
-                                </select>
-                                @error('wilayah')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
-                                <p class="mt-1 text-xs text-gray-500">Pilih wilayah untuk menghitung ongkir otomatis</p>
-                            </div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-bold uppercase mb-2">
+                                        Nama Lengkap
+                                    </label>
+                                    <input type="text" name="nama_pembeli" required x-model="formData.nama_pembeli"
+                                        value="{{ old('nama_pembeli') }}"
+                                        class="w-full h-12 px-4 border-2 border-black rounded-lg bg-cream-accent focus:ring-0 focus:border-primary shadow-retro-sm">
+                                    @error('nama_pembeli')
+                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
 
-                            <!-- Alamat -->
-                            <div>
-                                <label for="alamat" class="block text-sm font-medium text-gray-700 mb-2">
-                                    Alamat Lengkap <span class="text-red-500">*</span>
-                                </label>
-                                <textarea name="alamat" id="alamat" rows="4" required x-model="formData.alamat"
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 @error('alamat') border-red-500 @enderror"
-                                    placeholder="Masukkan alamat lengkap (Jalan, RT/RW, Kelurahan, Kecamatan)">{{ old('alamat') }}</textarea>
-                                @error('alamat')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
-                                <p class="mt-1 text-xs text-gray-500">⚠️ Pastikan alamat sesuai dengan wilayah yang
-                                    dipilih</p>
-                            </div>
+                                <div>
+                                    <label class="block text-sm font-bold uppercase mb-2">
+                                        No. Telepon
+                                    </label>
+                                    <input type="text" name="no_telp_pembeli" required x-model="formData.no_telp_pembeli"
+                                        value="{{ old('no_telp_pembeli') }}"
+                                        class="w-full h-12 px-4 border-2 border-black rounded-lg bg-cream-accent focus:ring-0 focus:border-primary shadow-retro-sm">
+                                    @error('no_telp_pembeli')
+                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
 
-                            <!-- Calculate Shipping Button -->
+                                <div>
+                                    <label class="block text-sm font-bold uppercase mb-2">
+                                        Wilayah
+                                    </label>
+                                    <select name="wilayah" required x-model="formData.wilayah" @change="resetShipping()"
+                                        class="w-full h-12 px-4 border-2 border-black rounded-lg bg-cream-accent focus:ring-0 focus:border-primary shadow-retro-sm cursor-pointer">
+                                        <option value="">-- Pilih Wilayah --</option>
+                                        <option value="Jakarta">Jakarta</option>
+                                        <option value="Depok">Depok</option>
+                                        <option value="Bekasi">Bekasi</option>
+                                        <option value="Tangerang">Tangerang</option>
+                                        <option value="Bogor">Bogor</option>
+                                        <option value="Jawa Barat">Jawa Barat</option>
+                                        <option value="Jawa Tengah">Jawa Tengah</option>
+                                        <option value="Jawa Timur">Jawa Timur</option>
+                                    </select>
+                                    @error('wilayah')
+                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-bold uppercase mb-2">
+                                        Alamat Lengkap
+                                    </label>
+                                    <textarea name="alamat" rows="4" required x-model="formData.alamat"
+                                        class="w-full p-4 border-2 border-black rounded-lg bg-cream-accent focus:ring-0 focus:border-primary shadow-retro-sm resize-none">{{ old('alamat') }}</textarea>
+                                    @error('alamat')
+                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+                            <input type="hidden" name="ongkir" x-model="shippingInfo.ongkir">
                             <button type="button" @click="calculateShipping()" :disabled="!canCalculateShipping()"
-                                :class="canCalculateShipping() ? 'bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer' : 'bg-gray-300 text-gray-500 cursor-not-allowed'"
-                                class="w-full py-3 rounded-lg transition font-medium">
+                                class="mt-6 w-full h-14 bg-primary text-white border-2 border-black rounded-lg font-black uppercase shadow-retro hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all disabled:bg-gray-300 disabled:text-gray-500">
                                 <span x-show="!loading">Hitung Ongkir</span>
                                 <span x-show="loading">Menghitung...</span>
                             </button>
-                        </div>
-                    </div>
+                        </section>
 
-                    <!-- Shipping Info (Initially Hidden) -->
-                    <div x-show="shippingCalculated" x-cloak class="bg-white rounded-lg shadow-md p-6">
-                        <h2 class="text-xl font-semibold text-gray-900 mb-4">Informasi Pengiriman</h2>
+                        <!-- ITEM PESANAN -->
+                        <section class="bg-white border-2 border-black rounded-xl p-8 shadow-retro">
+                            <h3 class="font-black uppercase mb-6">
+                                Item Pesanan ({{ count($cartItems) }})
+                            </h3>
 
-                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                            <div class="flex items-start">
-                                <svg class="h-5 w-5 text-blue-600 mt-0.5 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd"
-                                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                                <div>
-                                    <p class="text-sm font-medium text-blue-900">Wilayah: <span
-                                            x-text="shippingInfo.region"></span></p>
-                                    <p class="text-sm text-blue-800 mt-1">Berat: <span
-                                            x-text="shippingInfo.weight"></span> kg
-                                        ({{ array_sum(array_column($cartItems, 'quantity')) }} item)</p>
-                                    <p class="text-lg font-bold text-blue-900 mt-2">Ongkir: <span
-                                            x-text="shippingInfo.formatted_ongkir"></span></p>
-                                </div>
-                            </div>
-                        </div>
+                            <div class="space-y-5">
+                                @foreach($cartItems as $item)
+                                    <div class="flex gap-5 items-center border-b-2 border-dashed pb-4">
 
-                        <input type="hidden" name="ongkir" x-model="shippingInfo.ongkir">
-                    </div>
+                                        <!-- IMAGE -->
+                                        <div
+                                            class="w-20 h-20 rounded-lg overflow-hidden border-2 border-black bg-white shrink-0">
+                                            @if($item['kaos']->foto_kaos)
+                                                <img src="{{ asset('storage/' . $item['kaos']->foto_kaos) }}"
+                                                    alt="{{ $item['kaos']->merek }}" class="w-full h-full object-cover">
+                                            @else
+                                                <div
+                                                    class="w-full h-full flex items-center justify-center text-gray-400 text-xs font-bold">
+                                                    NO IMAGE
+                                                </div>
+                                            @endif
+                                        </div>
 
-                    <!-- Order Items -->
-                    <div class="bg-white rounded-lg shadow-md p-6">
-                        <h2 class="text-xl font-semibold text-gray-900 mb-4">Item Pesanan ({{ count($cartItems) }})</h2>
-
-                        <div class="space-y-3">
-                            @foreach($cartItems as $item)
-                                <div class="flex items-center justify-between py-3 border-b last:border-b-0">
-                                    <div class="flex items-center space-x-3">
-                                        @if($item['kaos']->foto_kaos)
-                                            <img src="{{ asset('storage/' . $item['kaos']->foto_kaos) }}"
-                                                alt="{{ $item['kaos']->merek }}" class="w-16 h-16 object-cover rounded">
-                                        @else
-                                            <div class="w-16 h-16 bg-gray-200 rounded"></div>
-                                        @endif
-                                        <div>
-                                            <p class="font-medium text-gray-900">{{ $item['kaos']->merek }}</p>
-                                            <p class="text-sm text-gray-600">{{ $item['kaos']->warna_kaos }} -
-                                                {{ $item['kaos']->ukuran }}
+                                        <!-- INFO -->
+                                        <div class="flex-1">
+                                            <p class="font-black uppercase leading-tight">
+                                                {{ $item['kaos']->merek }}
                                             </p>
-                                            <p class="text-sm text-gray-600">Qty: {{ $item['quantity'] }}</p>
+                                            <p class="text-sm text-gray-600">
+                                                {{ $item['kaos']->warna_kaos }} • {{ $item['kaos']->ukuran }} • Qty
+                                                {{ $item['quantity'] }}
+                                            </p>
+                                        </div>
+
+                                        <!-- PRICE -->
+                                        <div class="font-black text-right whitespace-nowrap">
+                                            Rp {{ number_format($item['subtotal'], 0, ',', '.') }}
                                         </div>
                                     </div>
-                                    <p class="font-semibold text-gray-900">Rp
-                                        {{ number_format($item['subtotal'], 0, ',', '.') }}
-                                    </p>
+                                @endforeach
+                            </div>
+                        </section>
+                    </div>
+
+                    <!-- RIGHT 20% -->
+                    <div class="w-full lg:w-[20%] sticky top-24">
+                        <div class="bg-white border-2 border-black rounded-xl p-6 shadow-retro-lg">
+                            <h3 class="font-black uppercase mb-4">
+                                Ringkasan
+                            </h3>
+
+                            <div class="space-y-2 text-sm font-medium">
+                                <div class="flex justify-between">
+                                    <span>Subtotal</span>
+                                    <span class="font-bold">
+                                        Rp {{ number_format($subtotal, 0, ',', '.') }}
+                                    </span>
                                 </div>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Order Summary -->
-                <div class="lg:col-span-1">
-                    <div class="bg-white rounded-lg shadow-md p-6 sticky top-20">
-                        <h3 class="text-xl font-semibold text-gray-900 mb-4">Ringkasan Pesanan</h3>
-
-                        <div class="space-y-3 mb-4">
-                            <div class="flex justify-between text-gray-700">
-                                <span>Subtotal</span>
-                                <span class="font-semibold">Rp {{ number_format($subtotal, 0, ',', '.') }}</span>
+                                <div class="flex justify-between">
+                                    <span>Ongkir</span>
+                                    <span
+                                        x-text="shippingCalculated ? shippingInfo.formatted_ongkir : 'Belum dihitung'"></span>
+                                </div>
                             </div>
 
-                            <div class="flex justify-between text-gray-700">
-                                <span>Ongkir</span>
-                                <span class="font-semibold"
-                                    x-text="shippingCalculated ? shippingInfo.formatted_ongkir : 'Belum dihitung'"></span>
-                            </div>
-                        </div>
-
-                        <div class="border-t pt-4 mb-6">
-                            <div class="flex justify-between text-xl font-bold text-gray-900">
+                            <div class="mt-4 pt-4 border-t-2 border-black flex justify-between text-xl font-black">
                                 <span>Total</span>
-                                <span class="text-indigo-600"
-                                    x-text="formatCurrency({{ $subtotal }} + (shippingCalculated ? shippingInfo.ongkir : 0))"></span>
+                                <span class="text-primary"
+                                    x-text="formatCurrency({{ $subtotal }} + (shippingCalculated ? shippingInfo.ongkir : 0))">
+                                </span>
                             </div>
+
+                            <button form="checkoutForm" type="submit" :disabled="!canSubmit()"
+                                class="mt-6 w-full h-14 bg-primary text-white border-2 border-black rounded-lg font-black uppercase shadow-retro hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all disabled:bg-gray-300 disabled:text-gray-500">
+                                <span x-show="canSubmit()">Buat Pesanan</span>
+                                <span x-show="!canSubmit()">Hitung Ongkir Dulu</span>
+                            </button>
                         </div>
 
-                        <!-- Payment Method Info -->
-                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-                            <h4 class="text-sm font-semibold text-yellow-900 mb-2">Metode Pembayaran</h4>
-                            <p class="text-xs text-yellow-800">Transfer Bank (Konfirmasi manual oleh kasir)</p>
+                        <!-- Need Help? -->
+                        <div
+                            class="bg-retro-cream border-2 border-retro-border rounded-lg p-4 flex items-center justify-between mt-6">
+                            <div>
+                                <p class="font-bold text-sm uppercase">Butuh Bantuan?</p>
+                                <p class="text-xs text-[#996b4d]">Hubungi CS kami di WhatsApp</p>
+                            </div>
+                            <a href="https://wa.me/6287753966298"
+                                class="size-8 rounded-full bg-white border-2 border-retro-border flex items-center justify-center text-green-600 hover:scale-110 transition-transform">
+                                <span class="material-symbols-outlined text-lg">chat</span>
+                            </a>
                         </div>
-
-                        <button type="submit" :disabled="!canSubmit()"
-                            :class="canSubmit() ? 'bg-indigo-600 hover:bg-indigo-700 cursor-pointer' : 'bg-gray-300 text-gray-500 cursor-not-allowed'"
-                            class="w-full text-white py-3 rounded-lg font-semibold mb-3 transition">
-                            <span x-show="canSubmit()">Buat Pesanan</span>
-                            <span x-show="!canSubmit()">Hitung Ongkir Terlebih Dahulu</span>
-                        </button>
-
-                        <p class="text-xs text-gray-500 text-center">
-                            ⚠️ Pesanan akan dikonfirmasi oleh kasir
-                        </p>
-
-                        <a href="{{ route('customer.cart') }}"
-                            class="block text-center mt-4 text-indigo-600 hover:text-indigo-800">
-                            ← Kembali ke Keranjang
-                        </a>
                     </div>
                 </div>
-            </div>
-        </form>
-    </main>
+            </form>
+
+        </div>
+    </div>
+
 
     <script>
         function checkoutData() {
@@ -341,6 +301,4 @@
             display: none !important;
         }
     </style>
-</body>
-
-</html>
+@endsection

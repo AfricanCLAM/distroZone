@@ -18,4 +18,4 @@ export default {
     },
 
     plugins: [forms],
-};
+};1

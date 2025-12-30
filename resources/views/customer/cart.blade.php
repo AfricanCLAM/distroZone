@@ -1,142 +1,185 @@
-<!DOCTYPE html>
-<html lang="id">
+@extends('layouts.customer')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Keranjang Belanja - DistroZone</title>
-            <script src="{{ asset('js/tailwind.js') }}"></script>
-<script defer src="{{ asset('js/alpine.js') }}"></script>
+@section('content')
+    <main class="flex-grow w-full max-w-7xl mx-auto px-4 md:px-8 py-10">
 
-</head>
-
-<body class="bg-gray-50">
-    <!-- Header -->
-    <header class="bg-white shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <div class="flex items-center">
-                    <a href="{{ route('customer.catalog') }}" class="text-2xl font-bold text-indigo-600">DISTROZONE</a>
-                </div>
-                <nav class="flex items-center space-x-6">
-                    <a href="{{ route('customer.catalog') }}"
-                        class="text-gray-700 hover:text-indigo-600 font-medium">Katalog</a>
-                    <a href="{{ route('customer.cart') }}" class="text-indigo-600 font-medium">Keranjang</a>
-                </nav>
-            </div>
+        <!-- Breadcrumb -->
+        <div class="flex items-center gap-2 text-sm font-bold mb-6">
+            <a href="{{ route('customer.catalog') }}" class="text-text-muted hover:text-primary hover:underline">Katalog</a>
+            <span class="text-text-muted">/</span>
+            <span class="text-text-main">Keranjang</span>
         </div>
-    </header>
 
-    <!-- Cart Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h1 class="text-3xl font-bold text-gray-900 mb-8">Keranjang Belanja</h1>
+        <!-- Title -->
+        <div class="mb-10 border-b-2 border-dashed border-retro-border/20 pb-6">
+            <h1 class="text-4xl font-black uppercase text-text-main mb-2">
+                Keranjang Belanja
+            </h1>
+            <p class="text-text-muted font-medium text-lg">
+                Cek kembali item sebelum checkout
+            </p>
+        </div>
 
         @if(count($cartItems) > 0)
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <!-- Cart Items -->
-                <div class="lg:col-span-2 space-y-4">
+            <div class="flex flex-col lg:flex-row gap-10 items-start">
+
+                <!-- LEFT : CART ITEMS -->
+                <div class="flex-1 w-full flex flex-col gap-6">
+
                     @foreach($cartItems as $item)
-                        <div class="bg-white rounded-lg shadow-md p-6 flex items-center space-x-4">
-                            <!-- Product Image -->
-                            @if($item['kaos']->foto_kaos)
-                                <img src="{{ asset('storage/' . $item['kaos']->foto_kaos) }}" alt="{{ $item['kaos']->merek }}"
-                                    class="w-24 h-24 object-cover rounded-lg">
-                            @else
-                                <div class="w-24 h-24 bg-gray-200 rounded-lg flex items-center justify-center">
-                                    <svg class="h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
+                        <div
+                            class="group flex flex-col sm:flex-row gap-6 p-5 bg-retro-cream border-2 border-retro-border rounded-lg shadow-retro-sm hover:shadow-retro transition-all">
+
+                            <!-- Image -->
+                            <div class="shrink-0">
+                                <div
+                                    class="w-full sm:w-32 aspect-square rounded border-2 border-retro-border bg-white overflow-hidden">
+                                    @if($item['kaos']->foto_kaos)
+                                        <img src="{{ asset('storage/' . $item['kaos']->foto_kaos) }}" alt="{{ $item['kaos']->merek }}"
+                                            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                    @else
+                                        <div class="w-full h-full flex items-center justify-center bg-gray-200">
+                                            <span class="material-symbols-outlined text-4xl text-gray-400">image</span>
+                                        </div>
+                                    @endif
                                 </div>
-                            @endif
-
-                            <!-- Product Info -->
-                            <div class="flex-1">
-                                <h3 class="text-lg font-semibold text-gray-900">{{ $item['kaos']->merek }}</h3>
-                                <p class="text-sm text-gray-600">{{ $item['kaos']->warna_kaos }} - {{ $item['kaos']->ukuran }}
-                                </p>
-                                <p class="text-lg font-bold text-indigo-600 mt-2">Rp
-                                    {{ number_format($item['kaos']->harga_jual, 0, ',', '.') }}</p>
                             </div>
 
-                            <!-- Quantity Controls -->
-                            <div class="flex flex-col items-center space-y-2">
-                                <form action="{{ route('customer.cart.update', $item['kaos']->id_kaos) }}" method="POST"
-                                    class="flex items-center space-x-2">
-                                    @csrf
-                                    @method('PATCH')
-                                    <button type="button" onclick="updateQty(this, -1)"
-                                        class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300">-</button>
-                                    <input type="number" name="quantity" value="{{ $item['quantity'] }}" min="1"
-                                        max="{{ $item['kaos']->stok_kaos }}"
-                                        class="w-16 text-center border border-gray-300 rounded" onchange="this.form.submit()">
-                                    <button type="button" onclick="updateQty(this, 1)"
-                                        class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300">+</button>
-                                </form>
+                            <!-- Info -->
+                            <div class="flex flex-col flex-1 justify-between gap-4">
+                                <div class="flex justify-between items-start gap-4">
+                                    <div>
+                                        <h3 class="text-xl font-black uppercase text-text-main leading-tight">
+                                            {{ $item['kaos']->merek }}
+                                        </h3>
+                                        <p class="text-sm font-medium text-text-muted">
+                                            {{ $item['kaos']->warna_kaos }} | {{ $item['kaos']->ukuran }}
+                                        </p>
+                                        <p class="text-sm font-medium text-text-muted">
+                                            {{ $item['kaos']->harga_jual }}
+                                        </p>
+                                    </div>
 
-                                <form action="{{ route('customer.cart.remove', $item['kaos']->id_kaos) }}" method="POST"
-                                    onsubmit="return confirm('Hapus item ini?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-red-600 hover:text-red-800 text-sm">
-                                        Hapus
-                                    </button>
-                                </form>
-                            </div>
-                            <!-- Subtotal -->
-                            <div class="text-right">
-                                <p class="text-sm text-gray-600">Subtotal</p>
-                                <p class="text-xl font-bold text-gray-900">Rp
-                                    {{ number_format($item['subtotal'], 0, ',', '.') }}</p>
+                                    <!-- Delete -->
+                                    <form action="{{ route('customer.cart.remove', $item['kaos']->id_kaos) }}" method="POST"
+                                        onsubmit="return confirm('Hapus item ini?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="text-text-muted hover:text-red-600 transition-colors">
+                                            <span class="material-symbols-outlined">delete</span>
+                                        </button>
+                                    </form>
+                                </div>
+
+                                <!-- Bottom -->
+                                <div class="flex justify-between items-end flex-wrap gap-4">
+
+                                    <!-- Quantity -->
+                                    <form action="{{ route('customer.cart.update', $item['kaos']->id_kaos) }}" method="POST"
+                                        class="flex items-center border-2 border-retro-border rounded bg-white h-10">
+                                        @csrf
+                                        @method('PATCH')
+
+                                        <button type="button" onclick="updateQty(this, -1)"
+                                            class="px-3 h-full font-black border-r border-retro-border/20 hover:bg-gray-100">
+                                            -
+                                        </button>
+
+                                        <input type="number" name="quantity" value="{{ $item['quantity'] }}" min="1"
+                                            max="{{ $item['kaos']->stok_kaos }}"
+                                            class="w-14 text-center font-black text-text-main border-none focus:ring-0 p-0"
+                                            onchange="this.form.submit()">
+
+                                        <button type="button" onclick="updateQty(this, 1)"
+                                            class="px-3 h-full font-black border-l border-retro-border/20 hover:bg-gray-100">
+                                            +
+                                        </button>
+                                    </form>
+
+                                    <!-- Price -->
+                                    <div class="text-right">
+                                        <p class="text-xs text-text-muted font-bold">Subtotal</p>
+                                        <p class="text-xl font-black text-primary">
+                                            Rp {{ number_format($item['subtotal'], 0, ',', '.') }}
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     @endforeach
+
+                    <!-- Continue Shopping -->
+                    <a href="{{ route('customer.catalog') }}"
+                        class="flex items-center gap-2 font-bold text-text-main hover:text-primary transition group w-fit mt-2">
+                        <span class="material-symbols-outlined group-hover:-translate-x-1 transition-transform">
+                            arrow_back
+                        </span>
+                        Lanjut Belanja
+                    </a>
                 </div>
 
-                <!-- Order Summary -->
-                <div class="lg:col-span-1">
-                    <div class="bg-white rounded-lg shadow-md p-6 sticky top-20">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Ringkasan Pesanan</h3>
+                <!-- RIGHT : SUMMARY -->
+                <div class="w-full lg:w-[400px] shrink-0">
+                    <div class="bg-white border-2 border-retro-border rounded-xl p-6 shadow-retro sticky top-28">
 
-                        <div class="space-y-2 mb-4">
-                            <div class="flex justify-between text-gray-600">
-                                <span>Subtotal ({{ array_sum(array_column($cartItems, 'quantity')) }} item)</span>
-                                <span class="font-semibold">Rp {{ number_format($subtotal, 0, ',', '.') }}</span>
+                        <h2 class="text-2xl font-black uppercase text-text-main mb-6 pb-4 border-b-2 border-retro-border/10">
+                            Ringkasan
+                        </h2>
+
+                        <div class="space-y-4 mb-6">
+                            <div class="flex justify-between font-medium text-text-muted">
+                                <span>
+                                    Subtotal ({{ array_sum(array_column($cartItems, 'quantity')) }} item)
+                                </span>
+                                <span class="font-black text-text-main">
+                                    Rp {{ number_format($subtotal, 0, ',', '.') }}
+                                </span>
                             </div>
                         </div>
 
-                        <div class="border-t pt-4 mb-6">
-                            <div class="flex justify-between text-lg font-bold text-gray-900">
-                                <span>Total</span>
-                                <span class="text-indigo-600">Rp {{ number_format($subtotal, 0, ',', '.') }}</span>
+                        <div class="border-t border-retro-border/10 pt-4 mb-6">
+                            <div class="flex justify-between items-end">
+                                <span class="text-lg font-bold text-text-main">Total</span>
+                                <span class="text-3xl font-black text-text-main">
+                                    Rp {{ number_format($subtotal, 0, ',', '.') }}
+                                </span>
                             </div>
-                            <p class="text-xs text-gray-500 mt-1">*Ongkir akan dihitung saat checkout</p>
+                            <p class="text-xs text-text-muted mt-1">
+                                Ongkir dihitung saat checkout
+                            </p>
                         </div>
 
                         <a href="{{ route('customer.checkout') }}"
-                            class="block w-full bg-indigo-600 text-white text-center py-3 rounded-lg hover:bg-indigo-700 transition font-semibold">
+                            class="w-full flex items-center justify-center gap-3 bg-primary text-white font-black text-lg py-4 rounded-lg border-2 border-retro-border shadow-retro hover:shadow-retro-hover hover:translate-x-[2px] hover:translate-y-[2px] transition-all">
                             Lanjut ke Checkout
+                            <span class="material-symbols-outlined">arrow_forward</span>
                         </a>
-
-                        <a href="{{ route('customer.catalog') }}"
-                            class="block text-center mt-4 text-indigo-600 hover:text-indigo-800">
-                            ← Lanjut Belanja
-                        </a>
+                        <div class="mt-6 flex items-center justify-center gap-4 text-text-muted/50">
+                            <span class="material-symbols-outlined text-3xl">lock</span>
+                            <span class="material-symbols-outlined text-3xl">verified_user</span>
+                            <span class="material-symbols-outlined text-3xl">local_shipping</span>
+                        </div>
+                        <p class="text-center text-xs text-text-muted mt-2 font-medium">Transaksi aman &amp; terenkripsi.</p>
                     </div>
                 </div>
+
+            </div>
+            </div>
             </div>
         @else
-            <!-- Empty Cart -->
-            <div class="bg-white rounded-lg shadow-md p-12 text-center">
-                <svg class="mx-auto h-24 w-24 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                <h2 class="text-2xl font-bold text-gray-900 mb-2">Keranjang Kosong</h2>
-                <p class="text-gray-600 mb-6">Belum ada produk di keranjang Anda</p>
+            <!-- EMPTY CART -->
+            <div class="bg-white border-2 border-retro-border rounded-xl p-12 text-center shadow-retro">
+                <span class="material-symbols-outlined text-6xl text-gray-400 mb-4 block">
+                    shopping_cart
+                </span>
+                <h2 class="text-2xl font-black text-text-main mb-2">
+                    Keranjang Kosong
+                </h2>
+                <p class="text-text-muted mb-6">
+                    Belum ada produk di keranjang
+                </p>
                 <a href="{{ route('customer.catalog') }}"
-                    class="inline-block bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition">
+                    class="inline-block bg-primary text-white font-black px-6 py-3 rounded-lg border-2 border-retro-border shadow-retro hover:shadow-retro-hover transition">
                     Mulai Belanja
                 </a>
             </div>
@@ -155,6 +198,5 @@
             }
         }
     </script>
-</body>
 
-</html>
+@endsection
