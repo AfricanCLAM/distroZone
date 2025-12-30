@@ -1,11 +1,5 @@
 > Feature and Improvement
-- fix Detail Pesanan to show TRX,Phone Number and Address of User correctly on customer Checkout [done]
-- fix Detail Pesanan to show TRX,Phone Number and Address of User correctly on Kasir Order Review [done]
-- Changing Transaction History to Show TRX instead of Table ID [done]
-- fix Incorrect Status Display at Transaction History [done]
-- fix kaos and user saved in wrong directory [done]
-- fix routing for Transaction Detail on Dashboard Kasir [done]
-- adding option to download Struk and See Order Detail For Both Kasir and Admin
-
-> Responsive
-- fix mobile responsive on catalog
+- Reworking the Customer UI [done]
+- Reworking the AUTH UI
+- Reworking the Admin Dashboard UI
+- Reworking the Kasir Dashboard UI
