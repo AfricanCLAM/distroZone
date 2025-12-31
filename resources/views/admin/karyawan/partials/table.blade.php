@@ -1,78 +1,114 @@
-<table class="min-w-full divide-y divide-gray-200">
-    <thead class="bg-gray-50">
-        <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">NIK</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No. Telp</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Shift</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
-        </tr>
-    </thead>
-    <tbody class="bg-white divide-y divide-gray-200">
-        @forelse($karyawans as $karyawan)
-            <tr class="hover:bg-gray-50">
-                <td class="px-6 py-5 whitespace-nowrap text-sm text-gray-900">{{ $karyawan->NIK }}</td>
-                <td class="px-6 py-5 whitespace-nowrap">
-                    <div class="flex items-center">
-                        @if($karyawan->foto)
-                            <img src="{{ asset('storage/' . $karyawan->foto) }}" alt="{{ $karyawan->nama }}"
-                                class="h-15 w-15 rounded-full object-cover mr-3">
-                        @else
-                            <div class="h-15 w-15 rounded-full bg-gray-300 flex items-center justify-center mr-3">
-                                <span class="text-gray-600 font-semibold">{{ substr($karyawan->nama, 0, 1) }}</span>
-                            </div>
-                        @endif
-                        <span class="text-sm font-medium text-gray-900">{{ $karyawan->nama }}</span>
-                    </div>
-                </td>
-                <td class="px-6 py-5 whitespace-nowrap">
-                    <span class="text-sm font-medium text-gray-900">{{ $karyawan->username }}</span>
-                </td>
-                <td class="px-6 py-5 whitespace-nowrap">
-                    <span
-                        class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                {{ $karyawan->role === 'kasir online' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800' }}">
-                        {{ ucwords($karyawan->role) }}
-                    </span>
-                </td>
-                <td class="px-6 py-5 whitespace-nowrap text-sm text-gray-900">{{ $karyawan->no_telp }}</td>
-                <td class="px-6 py-5 whitespace-nowrap text-sm text-gray-900">
-                    @if($karyawan->shift_start && $karyawan->shift_end)
-                        {{ $karyawan->shift_start->format('H:i') }} - {{ $karyawan->shift_end->format('H:i') }}
-                    @else
-                        <span class="text-gray-400">-</span>
-                    @endif
-                </td>
-                <td class="px-6 py-5 whitespace-nowrap text-sm font-medium">
-                    <a href="{{ route('admin.karyawan.edit', $karyawan->id) }}"
-                        class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</a>
-                    <form action="{{ route('admin.karyawan.destroy', $karyawan->id) }}" method="POST" class="inline"
-                        onsubmit="return confirm('Yakin ingin menghapus karyawan ini?')">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="text-red-600 hover:text-red-900">Hapus</button>
-                    </form>
-                </td>
-            </tr>
-        @empty
-            <tr>
-                <td colspan="6" class="px-6 py-8 text-center text-gray-500">
-                    <div class="flex flex-col items-center">
-                        <svg class="h-12 w-12 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                        </svg>
-                        <p>Tidak ada data ditemukan</p>
-                    </div>
-                </td>
-            </tr>
-        @endforelse
-    </tbody>
-</table>
+<div class="flex flex-col overflow-hidden rounded-xl border-2 border-retro-border bg-white shadow-retro">
+    <div class="overflow-x-auto">
+        <table class="w-full min-w-[900px] border-collapse">
+            <thead>
+                <tr class="bg-retro-cream border-b-2 border-retro-border">
+                    <th class="px-6 py-4 text-left text-sm font-black uppercase">ID</th>
+                    <th class="px-6 py-4 text-left text-sm font-black uppercase">Info Kasir</th>
+                    <th class="px-6 py-4 text-left text-sm font-black uppercase">Username</th>
+                    <th class="px-6 py-4 text-left text-sm font-black uppercase">Role</th>
+                    <th class="px-6 py-4 text-left text-sm font-black uppercase">NIK</th>
+                    <th class="px-6 py-4 text-right text-sm font-black uppercase">Aksi</th>
+                </tr>
+            </thead>
 
-<!-- Pagination -->
-<div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
-    {{ $karyawans->links() }}
+            <tbody class="divide-y-2 divide-dashed divide-retro-border/20">
+                @forelse ($karyawan as $user)
+                    <tr class="hover:bg-[#fffdf5] transition-colors">
+                        <!-- ID -->
+                        <td class="px-6 py-4">
+                            <span
+                                class="inline-block rounded bg-[#f3ece7] px-2 py-1 text-xs font-bold border border-retro-border/30">
+                                {{ $user->kID }}
+                            </span>
+                        </td>
+
+                        <!-- Info -->
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                @if ($user->foto)
+                                    <img src="{{ asset('storage/' . $user->foto) }}"
+                                        class="size-10 rounded-full border-2 border-retro-border object-cover">
+                                @else
+                                    <div
+                                        class="size-10 rounded-full bg-primary text-white
+                                               border-2 border-retro-border
+                                               flex items-center justify-center font-bold">
+                                        {{ strtoupper(substr($user->nama, 0, 1)) }}
+                                    </div>
+                                @endif
+                                <span
+                                class="font-sm">
+                                {{ $user->nama }}
+                            </span>
+                            </div>
+                        </td>
+
+                        <!-- Username -->
+                        <td class="px-6 py-4 font-medium">
+                            {{ $user->username }}
+                        </td>
+
+                        <!-- Role -->
+                        <td class="px-6 py-4">
+                            <span
+                                class="inline-flex items-center rounded-full px-3 py-1
+                                text-xs font-bold uppercase border-2 border-retro-border
+                                shadow-[2px_2px_0px_0px_#1b130e]
+                                {{ str_contains($user->role, 'online') ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
+                                {{ ucwords($user->role) }}
+                            </span>
+                        </td>
+
+                         <!-- NIK -->
+                        <td class="px-6 py-4 font-medium">
+                            {{ $user->NIK }}
+                        </td>
+
+                        <!-- Actions -->
+                        <td class="px-6 py-4 text-right">
+                            <div class="flex justify-end gap-2">
+                                <a href="{{ route('admin.karyawan.edit', $user->id) }}"
+                                    class="flex size-9 items-center justify-center
+                                           border-2 border-retro-border rounded
+                                           hover:bg-yellow-100 shadow-retro-sm
+                                           active:translate-y-[1px] transition-all">
+                                    <span class="material-symbols-outlined text-[18px]">edit</span>
+                                </a>
+
+                                <form action="{{ route('admin.karyawan.destroy', $user->id) }}"
+                                      method="POST"
+                                      onsubmit="return confirm('Yakin hapus kasir ini?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button
+                                        class="flex size-9 items-center justify-center
+                                               border-2 border-retro-border rounded
+                                               text-red-600 hover:bg-red-50
+                                               shadow-retro-sm active:translate-y-[1px] transition-all">
+                                        <span class="material-symbols-outlined text-[18px]">delete</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center text-[#6b584a] font-medium">
+                            Tidak ada data kasir ditemukan
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div
+        class="border-t-2 border-retro-border bg-retro-cream px-6 py-4 flex justify-between items-center">
+        <span class="text-sm font-bold text-[#6b584a]">
+            Menampilkan {{ $karyawan->count() }} dari {{ $karyawan->total() }} data
+        </span>
+        {{ $karyawan->links() }}
+    </div>
 </div>

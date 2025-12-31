@@ -7,46 +7,8 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>DistroZone - Gaya Jalanan Masa Kini</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script defer src="{{ asset('js/alpine.js') }}"></script>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
-        rel="stylesheet" />
-    <link href="https://fonts.googleapis.com" rel="preconnect" />
-    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
-    <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;700;900&amp;display=swap"
-        rel="stylesheet" />
-    <link
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
-        rel="stylesheet" />
-    <script id="tailwind-config">
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        "primary": "#c95b13",
-                        "background-light": "#f8f7f6",
-                        "background-dark": "#211711",
-                        "cream-accent": "#f3ece7",
-                        "retro-border": "#1b130e",
-                        "retro-cream": "#f3ece7",
-                        "retro-surface": "#f3ece7",
-                    },
-                    fontFamily: {
-                        "display": ["Work Sans", "sans-serif"]
-                    },
-                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
-                    boxShadow: {
-                        'retro': '4px 4px 0px 0px rgba(33, 23, 17, 1)',
-                        'retro-lg': '6px 6px 0px 0px rgba(33, 23, 17, 1)',
-                        'retro-sm': '2px 2px 0px 0px rgba(33, 23, 17, 1)',
-                    }
-                },
-            },
-        }
-    </script>
-
     <style>
         body {
             font-family: 'Work Sans', sans-serif;

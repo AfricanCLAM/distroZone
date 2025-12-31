@@ -1,178 +1,174 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Edit Karyawan: {{ $karyawan->nama }}
-        </h2>
-    </x-slot>
+<<x-app-layout>
+    <!-- Page Heading -->
+    <div class="flex flex-col gap-2 mb-8 border-b-2 border-dashed border-retro-border/20 pb-6">
+        <h1 class="text-4xl md:text-5xl font-black uppercase tracking-tight text-retro-border">
+            Edit <span class="text-primary">Karyawan</span>
+        </h1>
+        <p class="text-[#6b584a] font-medium">
+            Perbarui data karyawan: <span class="font-bold">{{ $karyawan->nama }}</span>
+        </p>
+    </div>
 
-    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <form action="{{ route('admin.karyawan.update', $karyawan->id) }}" method="POST"
-                enctype="multipart/form-data">
+    <!-- Form Card -->
+    <div class="max-w-3xl mx-auto">
+        <div class="bg-white rounded-xl border-2 border-retro-border shadow-retro p-6 md:p-8">
+            <form action="{{ route('admin.karyawan.update', $karyawan->id) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
 
-                <!-- NIK -->
-                <div class="mb-4">
-                    <label for="NIK" class="block text-sm font-medium text-gray-700 mb-2">NIK</label>
-                    <input type="text" name="NIK" id="NIK" value="{{ old('NIK', $karyawan->NIK) }}" required
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 @error('NIK') border-red-500 @enderror">
-                    @error('NIK')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
+                <!-- Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                <!-- Nama -->
-                <div class="mb-4">
-                    <label for="nama" class="block text-sm font-medium text-gray-700 mb-2">Nama Lengkap</label>
-                    <input type="text" name="nama" id="nama" value="{{ old('nama', $karyawan->nama) }}" required
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 @error('nama') border-red-500 @enderror">
-                    @error('nama')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
+                    <!-- NIK -->
+                    <div>
+                        <label class="block font-bold text-sm uppercase mb-2">NIK</label>
+                        <input type="text" name="NIK" value="{{ old('NIK', $karyawan->NIK) }}" required
+                            class="w-full h-12 px-4 rounded-lg border-2 border-retro-border retro-input
+                                   @error('NIK') border-red-500 @enderror">
+                        @error('NIK')
+                            <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
 
-                <!-- Username -->
-                <div class="mb-4">
-                    <label for="username" class="block text-sm font-medium text-gray-700 mb-2">Username</label>
-                    <input type="text" name="username" id="username" value="{{ old('username', $karyawan->username) }}"
-                        required
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 @error('username') border-red-500 @enderror">
-                    @error('username')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
+                    <!-- Username -->
+                    <div>
+                        <label class="block font-bold text-sm uppercase mb-2">Username</label>
+                        <input type="text" name="username" value="{{ old('username', $karyawan->username) }}" required
+                            class="w-full h-12 px-4 rounded-lg border-2 border-retro-border retro-input
+                                   @error('username') border-red-500 @enderror">
+                        @error('username')
+                            <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
 
-                <!-- Alamat -->
-                <div class="mb-4">
-                    <label for="alamat" class="block text-sm font-medium text-gray-700 mb-2">Alamat</label>
-                    <textarea name="alamat" id="alamat" rows="3" required
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 @error('alamat') border-red-500 @enderror">{{ old('alamat', $karyawan->alamat) }}</textarea>
-                    @error('alamat')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
+                    <!-- Nama -->
+                    <div class="md:col-span-2">
+                        <label class="block font-bold text-sm uppercase mb-2">Nama Lengkap</label>
+                        <input type="text" name="nama" value="{{ old('nama', $karyawan->nama) }}" required
+                            class="w-full h-12 px-4 rounded-lg border-2 border-retro-border retro-input
+                                   @error('nama') border-red-500 @enderror">
+                        @error('nama')
+                            <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
 
-                <!-- No Telp -->
-                <div class="mb-4">
-                    <label for="no_telp" class="block text-sm font-medium text-gray-700 mb-2">No. Telepon</label>
-                    <input type="text" name="no_telp" id="no_telp" value="{{ old('no_telp', $karyawan->no_telp) }}"
-                        required
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 @error('no_telp') border-red-500 @enderror">
-                    @error('no_telp')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
+                    <!-- Alamat -->
+                    <div class="md:col-span-2">
+                        <label class="block font-bold text-sm uppercase mb-2">Alamat</label>
+                        <textarea name="alamat" rows="3" required
+                            class="w-full px-4 py-3 rounded-lg border-2 border-retro-border retro-input
+                                   @error('alamat') border-red-500 @enderror">{{ old('alamat', $karyawan->alamat) }}</textarea>
+                        @error('alamat')
+                            <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
 
-                <!-- Role -->
-                <div class="mb-4">
-                    <label for="role" class="block text-sm font-medium text-gray-700 mb-2">Role</label>
-                    <select name="role" id="role" required
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 @error('role') border-red-500 @enderror">
-                        <option value="">Pilih Role</option>
-                        <option value="kasir online" {{ old('role', $karyawan->role) === 'kasir online' ? 'selected' : '' }}>
-                            Kasir Online
-                        </option>
-                        <option value="kasir offline" {{ old('role', $karyawan->role) === 'kasir offline' ? 'selected' : '' }}>
-                            Kasir Offline
-                        </option>
-                    </select>
-                    @error('role')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
+                    <!-- No Telp -->
+                    <div>
+                        <label class="block font-bold text-sm uppercase mb-2">No. Telepon</label>
+                        <input type="text" name="no_telp" value="{{ old('no_telp', $karyawan->no_telp) }}" required
+                            class="w-full h-12 px-4 rounded-lg border-2 border-retro-border retro-input
+                                   @error('no_telp') border-red-500 @enderror">
+                        @error('no_telp')
+                            <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
 
-                <!-- Password (Optional) -->
-                <div class="mb-4">
-                    <label for="password" class="block text-sm font-medium text-gray-700 mb-2">Password (Kosongkan jika
-                        tidak ingin mengubah)</label>
-                    <input type="password" name="password" id="password"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 @error('password') border-red-500 @enderror"
-                        placeholder="Masukkan password baru (opsional)">
-                    @error('password')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                    <p class="mt-1 text-xs text-gray-500">Biarkan kosong jika tidak ingin mengubah password</p>
-                </div>
+                    <!-- Role -->
+                    <div>
+                        <label class="block font-bold text-sm uppercase mb-2">Role</label>
+                        <select name="role" required
+                            class="w-full h-12 px-4 rounded-lg border-2 border-retro-border bg-white retro-input
+                                   @error('role') border-red-500 @enderror">
+                            <option value="">Pilih Role</option>
+                            <option value="kasir online" {{ old('role', $karyawan->role) === 'kasir online' ? 'selected' : '' }}>
+                                Kasir Online
+                            </option>
+                            <option value="kasir offline" {{ old('role', $karyawan->role) === 'kasir offline' ? 'selected' : '' }}>
+                                Kasir Offline
+                            </option>
+                        </select>
+                        @error('role')
+                            <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
 
-                <!-- Shift -->
-                <div class="mb-4">
-                    <label for="shift" class="block text-sm font-medium text-gray-700 mb-2">Shift</label>
-                    <select name="shift" id="shift" required
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 @error('shift') border-red-500 @enderror">
-                        <option value="">Pilih shift</option>
+                    <!-- Password -->
+                    <div class="md:col-span-2">
+                        <label class="block font-bold text-sm uppercase mb-2">
+                            Password Baru <span class="normal-case text-xs text-[#6b584a]">(opsional)</span>
+                        </label>
+                        <input type="password" name="password"
+                            class="w-full h-12 px-4 rounded-lg border-2 border-retro-border retro-input
+                                   @error('password') border-red-500 @enderror"
+                            placeholder="Kosongkan jika tidak ingin mengubah">
+                        @error('password')
+                            <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
 
-                        <option value="offline_siang" data-role="kasir offline">
-                            Kasir Offline Siang (10:00 - 15:00)
-                        </option>
+                    <!-- Shift -->
+                    <div>
+                        <label class="block font-bold text-sm uppercase mb-2">Shift</label>
+                        <select name="shift"
+                            class="w-full h-12 px-4 rounded-lg border-2 border-retro-border bg-white retro-input">
+                            <option value="">Pilih Shift</option>
+                            <option value="offline_siang">Kasir Offline Siang (10:00 - 15:00)</option>
+                            <option value="offline_sore">Kasir Offline Sore (15:00 - 20:00)</option>
+                            <option value="online">Kasir Online (10:00 - 17:00)</option>
+                        </select>
+                    </div>
 
-                        <option value="offline_sore" data-role="kasir offline">
-                            Kasir Offline Sore (15:00 - 20:00)
-                        </option>
+                    <!-- Shift Start -->
+                    <div>
+                        <label class="block font-bold text-sm uppercase mb-2">Shift Mulai</label>
+                        <input type="time" readonly
+                            value="{{ old('shift_start', optional($karyawan->shift_start)->format('H:i')) }}"
+                            class="w-full h-12 px-4 rounded-lg border-2 border-retro-border bg-gray-100 cursor-not-allowed">
+                    </div>
 
-                        <option value="online" data-role="kasir online">
-                            Kasir Online (10:00 - 17:00)
-                        </option>
-                    </select>
-                </div>
+                    <!-- Shift End -->
+                    <div>
+                        <label class="block font-bold text-sm uppercase mb-2">Shift Selesai</label>
+                        <input type="time" readonly
+                            value="{{ old('shift_end', optional($karyawan->shift_end)->format('H:i')) }}"
+                            class="w-full h-12 px-4 rounded-lg border-2 border-retro-border bg-gray-100 cursor-not-allowed">
+                    </div>
 
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Shift Mulai</label>
-                    <input type="time" name="shift_start" id="shift_start"
-                        value="{{ old('shift_start', optional($karyawan->shift_start)->format('H:i')) }}" readonly
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed">
-                </div>
+                    <!-- Foto -->
+                    <div class="md:col-span-2">
+                        <label class="block font-bold text-sm uppercase mb-2">Foto Karyawan</label>
 
+                        @if ($karyawan->foto)
+                            <div class="flex items-center gap-4 mb-3">
+                                <img src="{{ asset('storage/' . $karyawan->foto) }}"
+                                     class="h-24 w-24 object-cover rounded-lg border-2 border-retro-border shadow-retro-sm">
+                                <span class="text-sm text-[#6b584a] font-medium">Foto saat ini</span>
+                            </div>
+                        @endif
 
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Shift Selesai</label>
-                    <input type="time" name="shift_end" id="shift_end"
-                        value="{{ old('shift_end', optional($karyawan->shift_end)->format('H:i')) }}" readonly
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed">
-                </div>
-
-
-                <!-- Foto -->
-                <div class="mb-6">
-                    <label for="foto" class="block text-sm font-medium text-gray-700 mb-2">Foto (opsional)</label>
-
-                    @if($karyawan->foto)
-                        <div class="mb-3">
-                            <p class="text-sm text-gray-600 mb-2">Foto saat ini:</p>
-                            <img src="{{ asset('storage/' . $karyawan->foto) }}" alt="{{ $karyawan->nama }}"
-                                class="h-32 w-32 object-cover rounded-lg border-2 border-gray-300">
-                        </div>
-                    @endif
-
-                    <div class="flex items-center space-x-4">
-                        <div class="flex-1">
-                            <input type="file" name="foto" id="foto" accept="image/*"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-                                onchange="previewImage(event)">
-                            <p class="mt-1 text-xs text-gray-500">Biarkan kosong jika tidak ingin mengubah foto. Format:
-                                JPG, PNG. Max: 2MB</p>
-                        </div>
-                        <div id="preview-container" class="hidden">
-                            <img id="preview" class="h-24 w-24 object-cover rounded-lg border-2 border-gray-300">
-                        </div>
+                        <input type="file" name="foto" accept="image/*"
+                            class="w-full px-4 py-3 rounded-lg border-2 border-retro-border bg-white retro-input">
+                        <p class="text-xs text-[#6b584a] mt-1">
+                            Kosongkan jika tidak ingin mengubah foto (JPG / PNG, max 2MB)
+                        </p>
                     </div>
                 </div>
 
-                <!-- Buttons -->
-                <div class="flex justify-end space-x-3">
+                <!-- Actions -->
+                <div class="flex justify-end gap-3 mt-8">
                     <a href="{{ route('admin.karyawan.index') }}"
-                        class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                        class="h-12 px-6 flex items-center justify-center rounded-lg border-2 border-retro-border bg-white font-bold shadow-retro-sm hover:bg-gray-100">
                         Batal
                     </a>
                     <button type="submit"
-                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
-                        Update
+                        class="h-12 px-6 rounded-lg bg-primary text-white font-black uppercase border-2 border-retro-border shadow-retro hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_#1b130e] active:translate-y-[2px] active:shadow-retro-sm transition-all">
+                        Update Data
                     </button>
                 </div>
             </form>
         </div>
     </div>
-
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const roleSelect = document.getElementById('role');

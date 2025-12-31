@@ -1,3 +1,54 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@import "@fontsource/work-sans/400.css";
+@import "@fontsource/work-sans/500.css";
+@import "@fontsource/work-sans/700.css";
+@import "@fontsource/work-sans/900.css";
+
+@import "material-symbols/outlined.css";
+
+@theme {
+  /* =========================
+     COLORS
+     ========================= */
+  --color-primary: #c95b13;
+  --color-background-light: #f8f7f6;
+  --color-background-dark: #211711;
+  --color-ink: #1b130e;
+  --color-cream-accent: #f3ece7;
+
+  /* aliases (kept identical to config intent) */
+  --color-retro-border: #1b130e;
+  --color-retro-cream: #f3ece7;
+  --color-retro-surface: #f3ece7;
+  --color-olive: #606c38;
+  --color-cream: #fefcf0
+
+
+  /* =========================
+     FONT FAMILY
+     ========================= */
+  --font-display: "Work Sans", sans-serif;
+
+  /* =========================
+     BORDER RADIUS
+     ========================= */
+  --radius: 0.25rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-full: 9999px;
+
+  /* =========================
+     BOX SHADOW
+     ========================= */
+  --shadow-retro: 5px 5px 0px 0px #1b130e;
+  --shadow-retro-hover: 3px 3px 0px 0px #1b130e;
+  --shadow-retro-active: 0px 0px 0px 0px #1b130e;
+  --shadow-retro-input: inset 3px 3px 0px 0px rgba(0, 0, 0, 0.05);
+}
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';

@@ -15,9 +15,9 @@ class AdminController extends Controller
     public function dashboard()
     {
         $totalKaos = Kaos::count();
+
         $totalKaryawan = User::whereIn('role', ['kasir online', 'kasir offline'])->count();
 
-        // CHANGED: Use transaksi instead of laporan
         $pemasukanHariIni = Transaksi::where('status', 'validated')
             ->whereDate('validated_at', today())
             ->sum('pemasukan');
@@ -26,8 +26,12 @@ class AdminController extends Controller
             ->whereDate('validated_at', today())
             ->count();
 
-        // Additional useful stats
         $transaksiPending = Transaksi::where('status', 'pending')->count();
+
+        // ✅ INI YANG KURANG
+        $transaksiTerbaru = Transaksi::latest()
+            ->limit(5)
+            ->get();
 
         return view('admin.dashboard', compact(
             'totalKaos',
@@ -35,8 +39,10 @@ class AdminController extends Controller
             'pemasukanHariIni',
             'transaksiHariIni',
             'transaksiPending',
+            'transaksiTerbaru'
         ));
     }
+
 
     // ==================== KARYAWAN MANAGEMENT ====================
 
@@ -54,14 +60,14 @@ class AdminController extends Controller
             });
         }
 
-        $karyawans = $query->orderBy('nama')->paginate(15);
+        $karyawan = $query->orderBy('nama')->paginate(5);
 
         // If AJAX request, return partial view
         if ($request->ajax()) {
-            return view('admin.karyawan.partials.table', compact('karyawans'))->render();
+            return view('admin.karyawan.partials.table', compact('karyawan'))->render();
         }
 
-        return view('admin.karyawan.index', compact('karyawans'));
+        return view('admin.karyawan.index', compact('karyawan'));
     }
 
     public function karyawanCreate()
@@ -314,7 +320,7 @@ class AdminController extends Controller
         }
 
         // Get paginated results
-        $transaksis = $query->paginate(20)->withQueryString();
+        $transaksis = $query->paginate(5)->withQueryString();
 
         // Calculate totals
         $totalPemasukan = $query->sum('pemasukan');
