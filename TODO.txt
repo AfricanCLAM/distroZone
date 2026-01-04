@@ -5,11 +5,11 @@
     - Home Dashboard [done]
     - User CRUD [done]
     - Report [done]
-    - Kaos CRUD
+    - Kaos CRUD [done]
 - Reworking the Kasir Dashboard UI
-    - Home Dashboard
-    - Verify Order
-    - Report
+    - Home Dashboard [done]
+    - Verify Order [done]
+    - Report [done]
 
 > Change
 - Installing Material Symbol and removing the cdn [done]

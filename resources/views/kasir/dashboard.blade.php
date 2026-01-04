@@ -1,144 +1,158 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ Auth::user()->isKasirOnline() ? 'Kasir Online Dashboard' : 'Kasir Offline Dashboard' }}
-        </h2>
-    </x-slot>
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Welcome Card -->
-        <div class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg shadow-md p-6 mb-8 text-white">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h3 class="text-2xl font-bold mb-2">Selamat Datang, {{ Auth::user()->nama }}!</h3>
-                    <p class="text-indigo-100">{{ ucwords(Auth::user()->role) }}</p>
-                    @if(Auth::user()->shift_start && Auth::user()->shift_end)
-                        <p class="text-sm text-indigo-100 mt-2">
-                            Shift: {{ Auth::user()->shift_start->format('H:i') }} -
-                            {{ Auth::user()->shift_end->format('H:i') }}
-                        </p>
-                    @endif
-                </div>
-                <div class="hidden md:block">
-                    @if(Auth::user()->foto)
-                        <img src="{{ asset('storage/' . Auth::user()->foto) }}" alt="{{ Auth::user()->nama }}"
-                            class="h-20 w-20 rounded-full object-cover border-4 border-white shadow-lg">
-                    @else
-                        <div
-                            class="h-20 w-20 rounded-full bg-white flex items-center justify-center border-4 border-white shadow-lg">
-                            <span
-                                class="text-indigo-600 font-bold text-3xl">{{ strtoupper(substr(Auth::user()->nama, 0, 1)) }}</span>
-                        </div>
-                    @endif
-                </div>
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 w-full max-w-[1280px] mx-auto p-6 lg:p-12 flex flex-col gap-8 my-6">
+
+        <!-- PAGE HEADER -->
+        <header
+            class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4
+                   border-b-2 border-dashed border-retro-border/20 pb-6">
+
+            <div>
+                <h1 class="text-4xl md:text-5xl font-black uppercase tracking-tight text-retro-border mb-2">
+                    Dashboard
+                    <span class="text-primary">
+                        {{ Auth::user()->isKasirOnline() ? 'Kasir Online' : 'Kasir Offline' }}
+                    </span>
+                </h1>
+                <p class="text-retro-border/70 font-medium text-lg">
+                    Selamat datang, {{ Auth::user()->nama }}.
+                </p>
             </div>
-        </div>
 
-        <!-- Stats Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="flex items-center gap-3">
+                <span
+                    class="px-3 py-1 bg-primary/10 text-primary text-xs font-bold uppercase
+                           border-2 border-retro-border rounded-full flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[16px]">calendar_today</span>
+                    {{ now()->translatedFormat('d F Y') }}
+                </span>
+
+                <span
+                    class="px-3 py-1 text-xs font-bold uppercase
+                           border-2 border-retro-border rounded-full
+                           {{ Auth::user()->isKasirOnline() ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
+                    {{ ucwords(Auth::user()->role) }}
+                </span>
+            </div>
+        </header>
+
+        <!-- STATS GRID -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
             @if(Auth::user()->isKasirOnline())
-                <!-- Pending Transactions -->
-                <div class="bg-white rounded-lg shadow-md p-6">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0 bg-yellow-500 rounded-md p-3">
-                            <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm text-gray-500">Transaksi Pending</p>
-                            <p class="text-2xl font-bold text-gray-900">{{ $pendingCount ?? 0 }}</p>
-                        </div>
+            <!-- TRANSAKSI PENDING -->
+            <div class="bg-paper p-6 rounded-lg border-2 border-retro-border shadow-retro retro-card">
+                <div class="flex justify-between items-start mb-4">
+                    <div
+                        class="size-10 bg-white border-2 border-retro-border rounded
+                               flex items-center justify-center text-yellow-600 shadow-retro-sm">
+                        <span class="material-symbols-outlined">pending_actions</span>
                     </div>
-                    <a href="{{ route('kasir.transaksi.index') }}"
-                        class="mt-4 block text-center text-sm text-indigo-600 hover:text-indigo-800 font-medium">
-                        Lihat Semua →
-                    </a>
                 </div>
+                <p class="text-retro-border/60 font-bold text-sm uppercase mb-1">
+                    Transaksi Pending
+                </p>
+                <p class="text-4xl font-black">{{ $pendingCount ?? 0 }}</p>
+            </div>
             @endif
 
-            <!-- Today's Transactions -->
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0 bg-green-500 rounded-md p-3">
-                        <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm text-gray-500">Transaksi Hari Ini</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ $todayCount ?? 0 }}</p>
+            <!-- TRANSAKSI HARI INI -->
+            <div class="bg-paper p-6 rounded-lg border-2 border-retro-border shadow-retro retro-card">
+                <div class="flex justify-between items-start mb-4">
+                    <div
+                        class="size-10 bg-white border-2 border-retro-border rounded
+                               flex items-center justify-center text-green-600 shadow-retro-sm">
+                        <span class="material-symbols-outlined">receipt_long</span>
                     </div>
                 </div>
+                <p class="text-retro-border/60 font-bold text-sm uppercase mb-1">
+                    Transaksi Hari Ini
+                </p>
+                <p class="text-4xl font-black">{{ $todayCount ?? 0 }}</p>
             </div>
 
-            <!-- Total Completed -->
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0 bg-indigo-500 rounded-md p-3">
-                        <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm text-gray-500">Total Selesai</p>
-                        <p class="text-2xl font-bold text-gray-900">{{ $totalCompleted ?? 0 }}</p>
+            <!-- TOTAL SELESAI -->
+            <div class="bg-paper p-6 rounded-lg border-2 border-retro-border shadow-retro retro-card">
+                <div class="flex justify-between items-start mb-4">
+                    <div
+                        class="size-10 bg-white border-2 border-retro-border rounded
+                               flex items-center justify-center text-primary shadow-retro-sm">
+                        <span class="material-symbols-outlined">verified</span>
                     </div>
                 </div>
+                <p class="text-retro-border/60 font-bold text-sm uppercase mb-1">
+                    Total Transaksi Selesai
+                </p>
+                <p class="text-4xl font-black">{{ $totalCompleted ?? 0 }}</p>
             </div>
-        </div>
+        </section>
 
-        <!-- Quick Actions -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                @if(Auth::user()->isKasirOnline())
-                    <a href="{{ route('kasir.transaksi.index') }}"
-                        class="flex items-center p-4 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition">
-                        <svg class="h-8 w-8 text-indigo-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                        </svg>
-                        <span class="font-medium text-gray-900">Verifikasi Transaksi</span>
-                    </a>
-                @endif
+        <!-- MAIN SPLIT -->
+        <section class="flex flex-col lg:flex-row gap-8">
 
-                <a href="{{ route(Auth::user()->isKasirOnline() ? 'kasir.history' : 'kasir-offline.history') }}"
-                    class="flex items-center p-4 bg-green-50 hover:bg-green-100 rounded-lg transition">
-                    <svg class="h-8 w-8 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span class="font-medium text-gray-900">Lihat Riwayat Saya</span>
-                </a>
-            </div>
-        </div>
+            <!-- LEFT: INFO & CATATAN -->
+            <div class="flex-1 flex flex-col gap-6">
 
-        <!-- Important Notes -->
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
-            <div class="flex">
-                <div class="flex-shrink-0">
-                    <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                </div>
-                <div class="ml-3">
-                    <h3 class="text-sm font-medium text-blue-800">Informasi Penting</h3>
-                    <div class="mt-2 text-sm text-blue-700">
-                        <ul class="list-disc list-inside space-y-1">
+                <div
+                    class="bg-white border-2 border-retro-border rounded-lg shadow-retro p-6">
+                    <h3 class="text-xl font-black uppercase mb-4 flex items-center gap-2">
+                        <span class="material-symbols-outlined">info</span>
+                        Informasi Penting
+                    </h3>
+
+                    <ul class="list-disc list-inside text-retro-border/80 font-medium space-y-2">
+                        <li>Pastikan pembayaran diverifikasi sebelum konfirmasi</li>
+                        <li>Struk akan otomatis dibuat setelah transaksi selesai</li>
+                        @if(Auth::user()->isKasirOnline())
+                            <li>Jam operasional online: 10:00 – 17:00</li>
+                        @else
                             <li>Gunakan aplikasi desktop untuk transaksi offline</li>
-                            <li>Verifikasi pembayaran sebelum mengkonfirmasi transaksi</li>
-                            <li>Struk otomatis dibuat setelah konfirmasi</li>
-                            <li>Jam operasional online: 10:00 - 17:00</li>
-                            <li>Hubungi admin untuk masalah teknis</li>
-                        </ul>
+                        @endif
+                        <li>Hubungi admin jika terjadi kendala sistem</li>
+                    </ul>
+                </div>
+
+            </div>
+
+            <!-- RIGHT: QUICK ACTION -->
+            <div class="w-full lg:w-1/3 flex flex-col gap-6">
+
+                <div
+                    class="bg-primary p-6 rounded-lg border-2 border-retro-border shadow-retro flex flex-col gap-4">
+
+                    <div class="flex items-center gap-3 text-white mb-2">
+                        <span class="material-symbols-outlined text-3xl">bolt</span>
+                        <h3 class="text-xl font-black uppercase">Aksi Cepat</h3>
                     </div>
+
+                    @if(Auth::user()->isKasirOnline())
+                        <a href="{{ route('kasir.transaksi.index') }}"
+                           class="w-full bg-background-light text-retro-border font-bold
+                                  py-3 px-4 rounded border-2 border-retro-border
+                                  shadow-retro-sm active:translate-y-[2px] active:shadow-none
+                                  flex items-center justify-between group">
+                            <span>Verifikasi Transaksi</span>
+                            <span class="material-symbols-outlined group-hover:translate-x-1 transition">
+                                arrow_forward
+                            </span>
+                        </a>
+                    @endif
+
+                    <a href="{{ route(Auth::user()->isKasirOnline() ? 'kasir.history' : 'kasir-offline.history') }}"
+                       class="w-full bg-background-light text-retro-border font-bold
+                              py-3 px-4 rounded border-2 border-retro-border
+                              shadow-retro-sm active:translate-y-[2px] active:shadow-none
+                              flex items-center justify-between group">
+                        <span>Riwayat Transaksi</span>
+                        <span class="material-symbols-outlined group-hover:translate-x-1 transition">
+                            arrow_forward
+                        </span>
+                    </a>
+
                 </div>
             </div>
-        </div>
-    </div>
+        </section>
+
+    </main>
 </x-app-layout>

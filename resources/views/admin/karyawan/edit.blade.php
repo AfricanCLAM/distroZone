@@ -1,6 +1,6 @@
 <<x-app-layout>
     <!-- Page Heading -->
-    <div class="flex flex-col gap-2 mb-8 border-b-2 border-dashed border-retro-border/20 pb-6">
+    <div class="flex flex-col gap-2 mb-8 border-b-2 px-8 py-8 my-6 border-dashed border-retro-border/20 pb-6">
         <h1 class="text-4xl md:text-5xl font-black uppercase tracking-tight text-retro-border">
             Edit <span class="text-primary">Karyawan</span>
         </h1>

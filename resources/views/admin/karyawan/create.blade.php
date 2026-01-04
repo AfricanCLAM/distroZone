@@ -1,5 +1,5 @@
 <x-app-layout>
-    <main class="flex-grow w-full px-4 py-8 md:py-12 bg-[url('https://www.transparenttextures.com/patterns/concrete-wall.png')]">
+    <main class="flex-grow w-full px-4 py-8 my-6 md:py-12">
         <div class="mx-auto max-w-4xl">
 
             <!-- Header -->

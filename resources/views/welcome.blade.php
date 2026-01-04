@@ -2,7 +2,7 @@
 
 @section('content')
     <!-- Main Content Wrapper to offset fixed header -->
-    <main class="pt-[72px] min-h-screen flex flex-col">
+    <main class=" min-h-screen flex flex-col">
         <!-- Hero Section -->
         <section class="relative w-full bg-background-light border-b-2 border-black">
             <div class="max-w-[1440px] mx-auto px-4 md:px-10 py-12 md:py-20 lg:py-24">
@@ -49,9 +49,9 @@
         </section>
         <!-- Marquee / Ticker -->
         <div class="w-full bg-primary border-b-2 border-black overflow-hidden py-3">
-            <div class="flex whitespace-nowrap animate-marquee gap-8 items-center">
-                <!-- Repeated items for scrolling effect logic would be here, simplifying for static design presentation -->
-                <div class="flex items-center gap-8 text-white font-black uppercase tracking-widest text-sm md:text-base">
+            <div class="flex whitespace-nowrap">
+                <div
+                    class="flex gap-8 items-center text-white font-black uppercase tracking-widest text-sm md:text-base animate-marquee">
                     <span>★</span>
                     <span>STYLE PALING TRENDY</span>
                     <span>★</span>
@@ -59,9 +59,22 @@
                     <span>★</span>
                     <span>DESAIN EKSKLUSIF</span>
                     <span>★</span>
+                    <span>ONGKIR MURAH</span>
+                    <span>★</span>
+
+                    <!-- DUPLIKASI KONTEN -->
+                    <span>STYLE PALING TRENDY</span>
+                    <span>★</span>
+                    <span>BAHAN PREMIUM</span>
+                    <span>★</span>
+                    <span>DESAIN EKSKLUSIF</span>
+                    <span>★</span>
+                    <span>ONGKIR MURAH</span>
+                    <span>★</span>
                 </div>
             </div>
         </div>
+
         <!-- Featured Products Section -->
         <section class="w-full bg-background-light py-16 px-4 md:px-10">
             <div class="max-w-[1440px] mx-auto flex flex-col gap-10">
@@ -74,7 +87,7 @@
                         </p>
                     </div>
                     <a class="text-primary font-bold uppercase tracking-wide flex items-center gap-1 hover:gap-2 transition-all"
-                        href="#">
+                        href="{{ route('customer.catalog') }}">
                         Lihat Semua <span class="material-symbols-outlined text-lg">arrow_right_alt</span>
                     </a>
                 </div>
@@ -89,7 +102,7 @@
                                 <div class="w-full h-full bg-contain bg-center bg-no-repeat transition-transform duration-500 group-hover:scale-110"
                                     style="background-image: url({{ asset('storage/' . $item->foto_kaos) }});">
                                 </div>
-                                @if($item->stok_kaos > 0)
+                                @if ($item->stok_kaos > 0)
                                     <form action="{{ route('customer.cart.add', $item->id_kaos) }}" method="POST">
                                         @csrf
                                         <input type="hidden" name="quantity" value="1" />
@@ -119,11 +132,10 @@
                                 </div>
                             </div>
                         </div>
-
                     @endforeach
 
 
                 </div>
             </div>
         </section>
-@endsection
+    @endsection
