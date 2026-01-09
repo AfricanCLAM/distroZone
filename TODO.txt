@@ -1,16 +1,7 @@
 > Feature and Improvement
-- Reworking the Customer UI [done]
-- Reworking the AUTH UI [done]
-- Reworking the Admin Dashboard UI
-    - Home Dashboard [done]
-    - User CRUD [done]
-    - Report [done]
-    - Kaos CRUD [done]
-- Reworking the Kasir Dashboard UI
-    - Home Dashboard [done]
-    - Verify Order [done]
-    - Report [done]
+1. CRUD Kaos Now Use this system
+    Kaos A hasMany --> Green hasMany --> Stok HasOne --> Foto
+
 
 > Change
-- Installing Material Symbol and removing the cdn [done]
-- Installing "Work-Sans" and Removing the cdn [done]
+1. showing only Transaction ID for the Reports [done]

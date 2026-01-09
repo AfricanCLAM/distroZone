@@ -29,7 +29,6 @@
                             <tr class="bg-retro-border text-white">
                                 <th class="p-4 text-xs font-black uppercase">No</th>
                                 <th class="p-4 text-xs font-black uppercase">Tanggal</th>
-                                <th class="p-4 text-xs font-black uppercase">Pembeli</th>
                                 <th class="p-4 text-xs font-black uppercase">Item</th>
                                 <th class="p-4 text-xs font-black uppercase text-right">Total</th>
                                 <th class="p-4 text-xs font-black uppercase text-center">Status</th>
@@ -50,13 +49,6 @@
                                         </p>
                                         <p class="text-xs text-retro-border/60">
                                             {{ $trx->created_at->format('H:i') }}
-                                        </p>
-                                    </td>
-
-                                    <td class="p-4">
-                                        <p class="font-bold">{{ $trx->nama_pembeli }}</p>
-                                        <p class="text-xs text-retro-border/60">
-                                            {{ $trx->no_telp_pembeli }}
                                         </p>
                                     </td>
 

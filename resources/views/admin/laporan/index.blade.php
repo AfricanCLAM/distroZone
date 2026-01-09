@@ -113,7 +113,6 @@
                     <th class="px-6 py-4 text-left text-sm font-black uppercase">No</th>
                     <th class="px-6 py-4 text-left text-sm font-black uppercase">Tanggal</th>
                     <th class="px-6 py-4 text-left text-sm font-black uppercase">Kasir</th>
-                    <th class="px-6 py-4 text-left text-sm font-black uppercase">Pembeli</th>
                     <th class="px-6 py-4 text-right text-sm font-black uppercase">Total</th>
                     <th class="px-6 py-4 text-right text-sm font-black uppercase">Ongkir</th>
                     <th class="px-6 py-4 text-right text-sm font-black uppercase">Grand</th>
@@ -145,16 +144,6 @@
                         <!-- Kasir -->
                         <td class="px-6 py-4 font-medium">
                             {{ $transaksi->kasir->nama ?? '-' }}
-                        </td>
-
-                        <!-- Pembeli -->
-                        <td class="px-6 py-4">
-                            <div class="font-bold">
-                                {{ $transaksi->nama_pembeli ?? 'Offline' }}
-                            </div>
-                            <div class="text-xs text-[#6b584a]">
-                                {{ $transaksi->no_telp_pembeli }}
-                            </div>
                         </td>
 
                         <!-- Total -->

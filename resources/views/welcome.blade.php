@@ -11,7 +11,7 @@
                     <div class="flex-1 flex flex-col items-start gap-6 z-10">
                         <div
                             class="inline-block px-3 py-1 bg-primary text-white text-xs font-bold uppercase tracking-wider border-2 border-black shadow-retro-sm rounded">
-                            Edisi Terbatas 2024
+                            Edisi Terbatas 2025
                         </div>
                         <h1
                             class="text-5xl md:text-6xl lg:text-7xl font-black leading-[0.95] tracking-tight uppercase text-background-dark">
